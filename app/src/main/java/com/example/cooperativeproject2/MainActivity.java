@@ -44,12 +44,14 @@ public class MainActivity extends AppCompatActivity {
 
         tabLayout.setupWithViewPager(viewPager);
 
+
         //lambda용 코드
+
         // Create an instance of CognitoCachingCredentialsProvider
         CognitoCachingCredentialsProvider cognitoProvider = new CognitoCachingCredentialsProvider(
                 this.getApplicationContext(), "ap-northeast-2:b8705257-f808-45df-b68a-364b5366f7db", Regions.AP_NORTHEAST_2);
 
-// Create LambdaInvokerFactory, to be used to instantiate the Lambda proxy.
+        // Create LambdaInvokerFactory, to be used to instantiate the Lambda proxy.
         LambdaInvokerFactory factory = new LambdaInvokerFactory(this.getApplicationContext(),
                 Regions.AP_NORTHEAST_2, cognitoProvider);
 
@@ -58,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
 // LambdaDataBinder.
         final MyInterface myInterface = factory.build(MyInterface.class);
 
-        RequestClass request = new RequestClass("John", "Doe");
+        RequestClass request = new RequestClass("일정", 20200425, 1400, "집","항공대",30);
 // The Lambda function invocation results in a network call.
 // Make sure it is not called from the main thread.
         new AsyncTask<RequestClass, Void, ResponseClass>() {
@@ -81,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 // Do a toast
-                Toast.makeText(MainActivity.this, result.getGreetings(), Toast.LENGTH_LONG).show();
+                Toast.makeText(MainActivity.this, result.getTask(), Toast.LENGTH_LONG).show();
             }
         }.execute(request);
 

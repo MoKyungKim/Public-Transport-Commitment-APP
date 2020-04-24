@@ -14,6 +14,8 @@ import com.example.cooperativeproject2.Adapter.FragmentAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 public class MainActivity extends AppCompatActivity {
 
     ViewPager viewPager;

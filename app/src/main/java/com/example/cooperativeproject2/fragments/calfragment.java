@@ -9,7 +9,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.GridView;
-import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -55,23 +54,22 @@ public class calfragment extends Fragment {
     //캘린더 변수
     private Calendar mCal;
 
-    public calfragment() {
+    public calfragment(){
     }
 
-    public static calfragment getINSTANCE() {
-        if (INSTANCE == null)
+    public static calfragment getINSTANCE(){
+        if(INSTANCE == null)
             INSTANCE = new calfragment();
         return INSTANCE;
     }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.activity_calendar, container, false);
 
         tvDate = (TextView) view.findViewById(R.id.tv_date);
         gridView = (GridView) view.findViewById(R.id.gridview);
-
 
         // 오늘에 날짜를 세팅 해준다.
         long now = System.currentTimeMillis();
@@ -82,7 +80,7 @@ public class calfragment extends Fragment {
         final SimpleDateFormat curDayFormat = new SimpleDateFormat("dd", Locale.KOREA);
 
         //현재 날짜 텍스트뷰에 뿌려줌
-        tvDate.setText(curYearFormat.format(date) + "년 " + curMonthFormat.format(date) + "월 달력");
+        tvDate.setText(curYearFormat.format(date) + "/" + curMonthFormat.format(date));
 
         //gridview 요일 표시
         dayList = new ArrayList<String>();
@@ -104,7 +102,6 @@ public class calfragment extends Fragment {
         for (int i = 1; i < dayNum; i++) {
             dayList.add("");
         }
-
 
         setCalendarDate(mCal.get(Calendar.MONTH) + 1);
 
@@ -139,6 +136,7 @@ public class calfragment extends Fragment {
 
     /**
      * 그리드뷰 어댑터
+     *
      */
     public class GridAdapter extends BaseAdapter {
 
@@ -154,8 +152,9 @@ public class calfragment extends Fragment {
 
         public GridAdapter(Context context, List<String> list) {
             this.list = list;
-            this.inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            this.inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
+
 
 
         @Override
@@ -180,12 +179,12 @@ public class calfragment extends Fragment {
             if (convertView == null) {
                 convertView = inflater.inflate(R.layout.item_calendar_gridview, parent, false);
                 holder = new ViewHolder();
-                holder.tvItemGridView = (TextView) convertView.findViewById(R.id.tv_item_gridview);
+                holder.tvItemGridView = (TextView)convertView.findViewById(R.id.tv_item_gridview);
                 convertView.setTag(holder);
 
             } else {
 
-                holder = (ViewHolder) convertView.getTag();
+                holder = (ViewHolder)convertView.getTag();
 
             }
 
@@ -200,25 +199,14 @@ public class calfragment extends Fragment {
             String sToday = String.valueOf(today);
             if (sToday.equals(getItem(position))) { //오늘 day 텍스트 컬러 변경
                 holder.tvItemGridView.setTextColor(getResources().getColor(R.color.colorPrimaryDark));
-                holder.tvItemGridView.setBackgroundColor(getResources().getColor(R.color.colorLightPink));
-
             }
-
 
             return convertView;
 
         }
-
-
     }
-
     public static class ViewHolder {
         TextView tvItemGridView;
     }
-
-
-    Date date = new Date(); // 오늘의 날짜를 세팅 해준다.
-    int thisYear = date.getYear() + 1900;
-    int thisMonth = date.getMonth() + 1;
 
 }

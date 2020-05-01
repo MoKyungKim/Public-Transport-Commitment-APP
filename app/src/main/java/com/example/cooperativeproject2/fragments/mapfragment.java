@@ -5,13 +5,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.cooperativeproject2.R;
+import com.google.android.gms.maps.MapView;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-
-import com.example.cooperativeproject2.R;
-
-import net.daum.mf.map.api.MapView;
 
 public class mapfragment extends Fragment {
 

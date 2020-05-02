@@ -1,6 +1,6 @@
 package com.example.cooperativeproject2.Lambdaeventgenerator;
 import com.amazonaws.mobileconnectors.lambdainvoker.LambdaFunction;
-public interface MyInterface {
+public interface  MyInterface {
 
         /**
          * Invoke the Lambda function "AndroidBackendLambdaFunction".

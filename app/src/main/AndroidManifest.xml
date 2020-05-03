@@ -20,6 +20,10 @@
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyBGN9HuTUWakZjy19FTkGPw4KZML3sbJfc"/>
+        <service
+            android:name=".RingtonePlayingService"
+            android:enabled="true"></service>
+        <receiver android:name=".Alarm_Reciver" />
 
     </application>
 

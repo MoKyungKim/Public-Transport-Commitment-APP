@@ -16,7 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.util.Calendar;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity2 extends AppCompatActivity {
 
     AlarmManager alarm_manager;
     TimePicker alarm_timepicker;
@@ -40,7 +40,7 @@ public class MainActivity extends AppCompatActivity {
         final Calendar calendar = Calendar.getInstance();
 
         // 알람리시버 intent 생성
-        final Intent my_intent = new Intent(this.context, Alarm_Reciver.class);
+        final Intent my_intent = new Intent(this.context, Alarm_Receiver.class);
 
         // 알람 시작 버튼
         Button alarm_on = findViewById(R.id.btn_start);
@@ -56,12 +56,12 @@ public class MainActivity extends AppCompatActivity {
                 // 시간 가져옴
                 int hour = alarm_timepicker.getHour();
                 int minute = alarm_timepicker.getMinute();
-                Toast.makeText(MainActivity.this,"Alarm 예정 " + hour + "시 " + minute + "분",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity2.this,"Alarm 예정 " + hour + "시 " + minute + "분",Toast.LENGTH_SHORT).show();
 
                 // reveiver에 string 값 넘겨주기
                 my_intent.putExtra("state","alarm on");
 
-                pendingIntent = PendingIntent.getBroadcast(MainActivity.this, 0, my_intent,
+                pendingIntent = PendingIntent.getBroadcast(MainActivity2.this, 0, my_intent,
                         PendingIntent.FLAG_UPDATE_CURRENT);
 
                 // 알람셋팅
@@ -75,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         alarm_off.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(MainActivity.this,"Alarm 종료",Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity2.this,"Alarm 종료",Toast.LENGTH_SHORT).show();
                 // 알람매니저 취소
                 alarm_manager.cancel(pendingIntent);
 

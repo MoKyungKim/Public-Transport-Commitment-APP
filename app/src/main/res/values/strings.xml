@@ -1,3 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">CooperativeProject2</string>
+    <string name="hello">Hello World, GVCalendarActivity!</string>
+    <string name="app_name">GridViewCalendarExample - http://croute.me</string>
+    <string name="app_names">그리드뷰 달력</string>
 </resources>

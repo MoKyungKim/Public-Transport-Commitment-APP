@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#ffffff">
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/colorWB"
+        android:paddingLeft="30dp"
+        android:paddingTop="12dp"
+        android:paddingRight="30dp"
+        android:paddingBottom="12dp">
+
+
+        <!-- next button -->
+        <ImageView
+            android:id="@+id/calendar_next_button"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/next_icon" />
+
+
+        <!-- prev button -->
+        <ImageView
+            android:id="@+id/calendar_prev_button"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:layout_alignParentLeft="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/previous_icon" />
+
+        <!-- date title -->
+        <TextView
+            android:id="@+id/gv_calendar_activity_tv_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toLeftOf="@+id/calendar_next_button"
+            android:layout_toRightOf="@+id/calendar_prev_button"
+            android:gravity="center"
+            android:text="current date"
+            android:textAppearance="@android:style/TextAppearance.Medium"
+            android:textColor="#222222" />
+    </RelativeLayout>
+
+    <!--요일-->
+    <LinearLayout
+        android:id="@+id/calendar_header"
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:textColor="#222222"
+            android:text="SUN"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:textColor="#222222"
+            android:text="MON"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:textColor="#222222"
+            android:text="TUE"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:textColor="#222222"
+            android:text="WED"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:textColor="#222222"
+            android:text="THU"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:textColor="#222222"
+            android:text="FRI"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:gravity="center_horizontal"
+            android:textColor="#222222"
+            android:text="SAT"/>
+    </LinearLayout>
+
+    <!--달력-->
+    <GridView
+        android:id="@+id/gv_calendar_activity_gv_calendar"
+        android:layout_width="match_parent"
+        android:layout_height="430dp"
+        android:layout_marginTop="0dp"
+        android:layout_weight="1"
+        android:listSelector="@drawable/gridview_selector"
+        android:numColumns="7"
+        android:stretchMode="columnWidth" />
+
+
+    <!--
+     <TextView
+         android:text="2011년 몇월"
+         android:textSize="20sp"
+         android:id="@+id/gv_calendar_activity_tv_title"
+         android:layout_height="wrap_content"
+         android:layout_width="fill_parent"
+         android:layout_marginTop="20dp"
+         android:gravity="center"
+         android:textColor="#000"
+         android:textStyle="bold"/>
+
+     <LinearLayout
+         android:layout_width="fill_parent"
+         android:layout_height="fill_parent"
+         android:orientation="horizontal"
+         android:gravity="center">
+
+         <ImageView
+             android:id="@+id/calendar_prev_button"
+             android:layout_width="30dp"
+             android:layout_height="30dp"
+             android:layout_centerVertical="true"
+             android:layout_alignParentLeft="true"
+             android:src="@drawable/previous_icon"/>
+
+         <ImageView
+             android:id="@+id/calendar_next_button"
+             android:layout_width="30dp"
+             android:layout_height="30dp"
+             android:layout_centerVertical="true"
+             android:layout_alignParentRight="true"
+             android:src="@drawable/next_icon"/>
+
+
+         <GridView
+         android:id="@+id/gv_calendar_activity_gv_calendar"
+         android:layout_width="320dp"
+         android:layout_height="320dp"
+         android:layout_marginTop="30dp"
+         android:listSelector="@drawable/gridview_selector"
+         android:numColumns="7"
+         android:stretchMode="columnWidth" />
+
+     </LinearLayout>
+     -->
+</LinearLayout>

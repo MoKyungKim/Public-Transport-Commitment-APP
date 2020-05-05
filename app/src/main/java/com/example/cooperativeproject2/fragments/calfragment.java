@@ -1,11 +1,5 @@
 package com.example.cooperativeproject2.fragments;
 
-import java.util.ArrayList;
-import java.util.Calendar;
-
-//import com.example.CooperativeProject5.R;
-//import com.example.grid.CalendarAdapter;
-//import com.example.grid.DayInfo;
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,18 +18,23 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-//import com.example.cooperativeproject2.Adapter.Adapter;
 import com.example.cooperativeproject2.Adapter.CalendarAdapter;
 import com.example.cooperativeproject2.Adapter.RecyclerViewAdapter;
 import com.example.cooperativeproject2.DayInfo;
 import com.example.cooperativeproject2.Item;
 import com.example.cooperativeproject2.R;
+
+import java.util.ArrayList;
+import java.util.Calendar;
+
+//import com.example.CooperativeProject5.R;
+//import com.example.grid.CalendarAdapter;
+//import com.example.grid.DayInfo;
+//import com.example.cooperativeproject2.Adapter.Adapter;
 //import com.example.cooperativeproject2.SingModel;
 
 
 public class calfragment extends Fragment implements OnClickListener {
-
-    private static calfragment INSTANCE = null;
 
     View view;
     /**
@@ -89,11 +88,6 @@ public class calfragment extends Fragment implements OnClickListener {
     /* (non-Javadoc)
      * @see android.app.Activity#onCreate(android.os.Bundle)
      */
-    public static calfragment getINSTANCE(){
-        if(INSTANCE == null)
-            INSTANCE = new calfragment();
-        return INSTANCE;
-    }
 
 
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

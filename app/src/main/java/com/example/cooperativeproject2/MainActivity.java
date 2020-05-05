@@ -1,58 +1,61 @@
 package com.example.cooperativeproject2;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager.widget.ViewPager;
-
-import com.amazonaws.mobile.config.AWSConfiguration;
-import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient;
-import com.amazonaws.mobileconnectors.lambdainvoker.*;
-import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.regions.Regions;
-
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.TableLayout;
+import android.widget.Button;
 import android.widget.Toast;
 
-import com.example.cooperativeproject2.Adapter.FragmentAdapter;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.FragmentActivity;
+import androidx.viewpager.widget.ViewPager;
+
+import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobileconnectors.lambdainvoker.LambdaFunctionException;
+import com.amazonaws.mobileconnectors.lambdainvoker.LambdaInvokerFactory;
+import com.amazonaws.regions.Regions;
+import com.example.cooperativeproject2.Adapter.PagerAdapter;
 import com.example.cooperativeproject2.Lambdaeventgenerator.MyInterface;
 import com.example.cooperativeproject2.Lambdaeventgenerator.RequestClass;
 import com.example.cooperativeproject2.Lambdaeventgenerator.ResponseClass;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.tabs.TabLayout;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends FragmentActivity {
 
     ViewPager viewPager;
-    TabLayout tabLayout;
-    private AWSAppSyncClient mAWSAppSyncClient;
+//    private AWSAppSyncClient mAWSAppSyncClient;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main3);
 
-        mAWSAppSyncClient = AWSAppSyncClient.builder()
+    /*    mAWSAppSyncClient = AWSAppSyncClient.builder()
                 .context(getApplicationContext())
                 .awsConfiguration(new AWSConfiguration(getApplicationContext()))
                 .build();
-
+*/
         viewPager = findViewById(R.id.viewPager);
-        tabLayout = findViewById(R.id.tabLayout);
+        Button btn_first = findViewById(R.id.btn_cal);
+        Button btn_second = findViewById(R.id.btn_find);
+        Button btn_third = findViewById(R.id.btn_map);
 
-        FragmentAdapter fragmentAdapter = new FragmentAdapter(getSupportFragmentManager(),this);
-        viewPager.setAdapter(fragmentAdapter);
+        PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager());
 
-        tabLayout.setupWithViewPager(viewPager);
+        viewPager.setAdapter(pagerAdapter);
+        viewPager.setCurrentItem(0);
+
+        View.OnClickListener movePageListener = view -> {
+            int tag = (int)view.getTag();
+            viewPager.setCurrentItem(tag);
+        };
+        btn_first.setOnClickListener(movePageListener);
+        btn_first.setTag(0);
+        btn_second.setOnClickListener(movePageListener);
+        btn_second.setTag(1);
+        btn_third.setOnClickListener(movePageListener);
+        btn_third.setTag(2);
+
 
         //lambda용 코드
         // Create an instance of CognitoCachingCredentialsProvider

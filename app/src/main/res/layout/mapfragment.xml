@@ -1,13 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:context=".fragments.mapfragment">
+    android:orientation="vertical"
+    android:layout_gravity="center_horizontal"
+    android:id="@+id/layout_main"
+    tools:context=".MainActivity">
 
-    <RelativeLayout
-        android:id="@+id/mapsView"
+    <com.google.android.gms.maps.MapView xmlns:map="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/map"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="match_parent"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        />
+
+    <EditText
+        android:layout_marginTop="8dp"
+        android:id="@+id/edit_text"
+        android:layout_width="310dp"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/editbox_background"
+        android:drawableStart="@drawable/ic_location"
+        android:drawablePadding="16dp"
+        android:hint="@string/enter_address"
+        android:padding="12dp" />
 
 </FrameLayout>

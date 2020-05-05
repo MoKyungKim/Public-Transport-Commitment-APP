@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="hello">Hello World, GVCalendarActivity!</string>
+    <string name="map_key">AIzaSyBGN9HuTUWakZjy19FTkGPw4KZML3sbJfc</string>
     <string name="app_name">GridViewCalendarExample - http://croute.me</string>
     <string name="app_names">그리드뷰 달력</string>
+    <string name="enter_address">enter_address</string>
 </resources>

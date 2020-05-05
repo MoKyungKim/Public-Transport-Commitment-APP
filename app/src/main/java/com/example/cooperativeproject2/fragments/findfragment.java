@@ -13,17 +13,9 @@ import com.example.cooperativeproject2.R;
 
 public class findfragment extends Fragment {
 
-    private static findfragment INSTANCE = null;
-
     View view;
 
     public findfragment(){
-    }
-
-    public static findfragment getINSTANCE(){
-        if(INSTANCE == null)
-            INSTANCE = new findfragment();
-        return INSTANCE;
     }
 
     @Override

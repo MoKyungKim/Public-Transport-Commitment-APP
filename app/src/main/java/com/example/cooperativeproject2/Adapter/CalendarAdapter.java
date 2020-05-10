@@ -1,12 +1,5 @@
 package com.example.cooperativeproject2.Adapter;
 
-import android.widget.BaseAdapter;
-import java.util.ArrayList;
-import java.util.Calendar;
-
-import com.example.cooperativeproject2.R;
-//import com.example.cooperativeproject2.CalendarAdapter;
-import com.example.cooperativeproject2.DayInfo;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -18,7 +11,14 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.example.cooperativeproject2.DayInfo;
+import com.example.cooperativeproject2.R;
 import com.example.cooperativeproject2.fragments.calfragment;
+
+import java.util.ArrayList;
+
+//import com.example.cooperativeproject2.CalendarAdapter;
+
+//import com.example.cooperativeproject2.CalendarAdapter;
 
 public class CalendarAdapter extends BaseAdapter {
 

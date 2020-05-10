@@ -19,8 +19,12 @@ import com.example.cooperativeproject2.Adapter.PagerAdapter;
 import com.example.cooperativeproject2.Lambdaeventgenerator.MyInterface;
 import com.example.cooperativeproject2.Lambdaeventgenerator.RequestClass;
 import com.example.cooperativeproject2.Lambdaeventgenerator.ResponseClass;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.tabs.TabLayout;
 
-public class MainActivity extends FragmentActivity {
+import androidx.appcompat.app.AppCompatActivity;
+
+public class MainActivity extends AppCompatActivity {
 
     ViewPager viewPager;
 //    private AWSAppSyncClient mAWSAppSyncClient;

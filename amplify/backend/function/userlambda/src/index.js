@@ -34,4 +34,6 @@ exports.handler = async (event) => {
   if (Object.keys(event).length > 0) {
     write(params, context);
   }
+
+
 };

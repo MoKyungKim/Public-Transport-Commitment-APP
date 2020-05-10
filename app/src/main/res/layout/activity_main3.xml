@@ -24,6 +24,7 @@
             android:layout_width="0dip"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="@color/colorAccent"
             android:text="Calendar"/>
 
         <Button
@@ -31,6 +32,7 @@
             android:layout_width="0dip"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="@color/colorAccent"
             android:text="Find Road"
             />
 
@@ -39,6 +41,7 @@
             android:layout_width="0dip"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:background="@color/colorAccent"
             android:text="Map"
             />
 

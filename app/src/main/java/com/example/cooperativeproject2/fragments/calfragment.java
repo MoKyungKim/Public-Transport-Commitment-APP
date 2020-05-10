@@ -273,9 +273,9 @@ public class calfragment extends Fragment implements OnClickListener {
     private void initDataset() {
         //초기화
         items.clear();
-        items.add(new Item("아이유", "아이유는 대한민국의 가수이다. "));
-        items.add(new Item("수지", "수지 는 대한민국의 가수 겸 배우이다. "));
-        items.add(new Item("박보영", "박보영은 대한민국의 배우이다"));
+        items.add(new Item("2020년 5월 15일", "민주랑 약속 "));
+        items.add(new Item("2020년 5월 17일", "가족모임 "));
+        items.add(new Item("2020년 5월 18일", "초등학교 동창회"));
     }
 
 

@@ -12,6 +12,8 @@ public class DayInfo {
 
     private String day;
     private boolean inMonth;
+    //day 표시 시도
+    private boolean isDay;
 
     /**
      * 날짜를 반환한다.
@@ -36,6 +38,16 @@ public class DayInfo {
      *
      * @return inMonth(true / false)
      */
+
+    // day 표시 시도
+    public boolean isDay(){
+        return isDay;
+    }
+    public void setInDay(boolean isDay){
+
+    }
+    //
+
     public boolean isInMonth() {
         return inMonth;
     }

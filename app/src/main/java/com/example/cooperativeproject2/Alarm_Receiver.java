@@ -12,8 +12,6 @@ public class Alarm_Receiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
 
 
-
-
         this.context = context;
         // intent로부터 전달받은 string
         String get_yout_string = intent.getExtras().getString("state");

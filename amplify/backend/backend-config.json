@@ -1,26 +1,20 @@
 {
-
-	"storage": {
-		"user": {
-			"service": "DynamoDB",
-			"providerPlugin": "awscloudformation"
-		}
-	},
-	"function": {
-		"userlambda": {
-			"build": true,
+	"api": {
+		"myapi3": {
+			"service": "AppSync",
 			"providerPlugin": "awscloudformation",
-			"service": "Lambda",
-			"dependsOn": [
-				{
-					"category": "storage",
-					"resourceName": "user",
-					"attributes": [
-						"Name",
-						"Arn"
-					]
+			"output": {
+				"authConfig": {
+					"additionalAuthenticationProviders": [],
+					"defaultAuthentication": {
+						"authenticationType": "API_KEY",
+						"apiKeyConfig": {
+							"description": "demo",
+							"apiKeyExpirationDays": 7
+						}
+					}
 				}
-			]
+			}
 		}
 	}
 }

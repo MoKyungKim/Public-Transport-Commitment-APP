@@ -1,6 +1,5 @@
 apply plugin: 'com.android.application'
 apply plugin: 'com.amazonaws.appsync'
-//apply plugin: 'com.amplifyframework.amplifytools'
 
 android {
     compileSdkVersion 29

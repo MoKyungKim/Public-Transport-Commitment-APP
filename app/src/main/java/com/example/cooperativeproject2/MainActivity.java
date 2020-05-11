@@ -6,39 +6,49 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-
 import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 import androidx.viewpager.widget.ViewPager;
 
+import com.amazonaws.amplify.generated.graphql.CreateTaskMutation;
+import com.amazonaws.amplify.generated.graphql.ListTasksQuery;
+import com.amazonaws.amplify.generated.graphql.OnCreateTaskSubscription;
 import com.amazonaws.auth.CognitoCachingCredentialsProvider;
+import com.amazonaws.mobile.config.AWSConfiguration;
+import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient;
+import com.amazonaws.mobileconnectors.appsync.AppSyncSubscriptionCall;
+import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers;
 import com.amazonaws.mobileconnectors.lambdainvoker.LambdaFunctionException;
 import com.amazonaws.mobileconnectors.lambdainvoker.LambdaInvokerFactory;
 import com.amazonaws.regions.Regions;
+import com.apollographql.apollo.GraphQLCall;
+import com.apollographql.apollo.api.Response;
+import com.apollographql.apollo.exception.ApolloException;
 import com.example.cooperativeproject2.Adapter.PagerAdapter;
-import com.example.cooperativeproject2.Lambdaeventgenerator.MyInterface;
-import com.example.cooperativeproject2.Lambdaeventgenerator.RequestClass;
-import com.example.cooperativeproject2.Lambdaeventgenerator.ResponseClass;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import javax.annotation.Nonnull;
+
+import type.CreateTaskInput;
+
 public class MainActivity extends AppCompatActivity {
 
     ViewPager viewPager;
-//    private AWSAppSyncClient mAWSAppSyncClient;
+    private AWSAppSyncClient mAWSAppSyncClient;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main3);
 
-    /*    mAWSAppSyncClient = AWSAppSyncClient.builder()
+        mAWSAppSyncClient = AWSAppSyncClient.builder()
                 .context(getApplicationContext())
                 .awsConfiguration(new AWSConfiguration(getApplicationContext()))
                 .build();
-*/
+
         viewPager = findViewById(R.id.viewPager);
         Button btn_first = findViewById(R.id.btn_cal);
         Button btn_second = findViewById(R.id.btn_find);
@@ -59,49 +69,65 @@ public class MainActivity extends AppCompatActivity {
         btn_second.setTag(1);
         btn_third.setOnClickListener(movePageListener);
         btn_third.setTag(2);
+    }
+    public void runMutation(){
+        CreateTaskInput createTaskInput = CreateTaskInput.builder().
+                taskName("Task Name").
+                date(20200509).
+                build();
 
-
-        //lambda용 코드
-        // Create an instance of CognitoCachingCredentialsProvider
-        CognitoCachingCredentialsProvider cognitoProvider = new CognitoCachingCredentialsProvider(
-                this.getApplicationContext(), "ap-northeast-2:b8705257-f808-45df-b68a-364b5366f7db", Regions.AP_NORTHEAST_2);
-
-        // Create LambdaInvokerFactory, to be used to instantiate the Lambda proxy.
-        LambdaInvokerFactory factory = new LambdaInvokerFactory(this.getApplicationContext(),
-                Regions.AP_NORTHEAST_2, cognitoProvider);
-
-// Create the Lambda proxy object with a default Json data binder.
-// You can provide your own data binder by implementing
-// LambdaDataBinder.
-        final MyInterface myInterface = factory.build(MyInterface.class);
-
-        RequestClass request = new RequestClass("일정", 20200425, 1400, "집","항공대",30);
-// The Lambda function invocation results in a network call.
-// Make sure it is not called from the main thread.
-        new AsyncTask<RequestClass, Void, ResponseClass>() {
-            @Override
-            protected ResponseClass doInBackground(RequestClass... params) {
-                // invoke "echo" method. In case it fails, it will throw a
-                // LambdaFunctionException.
-                try {
-                    return myInterface.AndroidBackendLambdaFunction(params[0]);
-                } catch (LambdaFunctionException lfe) {
-                    Log.e("Tag", "Failed to invoke echo", lfe);
-                    return null;
-                }
-            }
-
-            @Override
-            protected void onPostExecute(ResponseClass result) {
-                if (result == null) {
-                    return;
-                }
-
-                // Do a toast
-                Toast.makeText(MainActivity.this, result.getTask(), Toast.LENGTH_LONG).show();
-            }
-        }.execute(request);
-
+        mAWSAppSyncClient.mutate(CreateTaskMutation.builder().input(createTaskInput).build())
+                .enqueue(mutationCallback);
     }
 
+    private GraphQLCall.Callback<CreateTaskMutation.Data> mutationCallback = new GraphQLCall.Callback<CreateTaskMutation.Data>() {
+        @Override
+        public void onResponse(@Nonnull Response<CreateTaskMutation.Data> response) {
+            Log.i("Results", "Added Task");
+        }
+
+        @Override
+        public void onFailure(@Nonnull ApolloException e) {
+            Log.e("Error", e.toString());
+        }
+    };
+    public void runQuery(){
+        mAWSAppSyncClient.query(ListTasksQuery.builder().build())
+                .responseFetcher(AppSyncResponseFetchers.CACHE_AND_NETWORK)
+                .enqueue(todosCallback);
+    }
+
+    private GraphQLCall.Callback<ListTasksQuery.Data> todosCallback = new GraphQLCall.Callback<ListTasksQuery.Data>() {
+        @Override
+        public void onResponse(@Nonnull Response<ListTasksQuery.Data> response) {
+            Log.i("Results", response.data().listTasks().items().toString());
+        }
+
+        @Override
+        public void onFailure(@Nonnull ApolloException e) {
+            Log.e("ERROR", e.toString());
+        }
+    };
+    private AppSyncSubscriptionCall subscriptionWatcher;
+
+    private void subscribe(){
+        OnCreateTaskSubscription subscription = OnCreateTaskSubscription.builder().build();
+        subscriptionWatcher = mAWSAppSyncClient.subscribe(subscription);
+        subscriptionWatcher.execute(subCallback);
+    }
+
+    private AppSyncSubscriptionCall.Callback subCallback = new AppSyncSubscriptionCall.Callback() {
+        @Override
+        public void onResponse(@Nonnull Response response) {
+            Log.i("Response", response.data().toString());
+        }
+        @Override
+        public void onFailure(@Nonnull ApolloException e) {
+            Log.e("Error", e.toString());
+        }
+        @Override
+        public void onCompleted() {
+            Log.i("Completed", "Subscription completed");
+        }
+    };
 }

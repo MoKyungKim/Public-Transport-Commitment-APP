@@ -16,6 +16,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -53,13 +54,21 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import com.google.android.material.snackbar.Snackbar;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+
+import noman.googleplaces.NRPlaces;
+import noman.googleplaces.PlaceType;
+import noman.googleplaces.PlacesException;
+import noman.googleplaces.PlacesListener;
 
 import static android.content.Context.LOCATION_SERVICE;
 
 public class mapfragment extends Fragment implements OnMapReadyCallback,
-        ActivityCompat.OnRequestPermissionsResultCallback {
+        ActivityCompat.OnRequestPermissionsResultCallback,
+        PlacesListener {
 
     private FragmentActivity mContext;
     private EditText editText;
@@ -71,6 +80,7 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
     private Location location;
     private Geocoder geocoder;
     private View mLayout;
+    private List<Marker> previous_marker;
 
     private static final String TAG = "googlemap_example";
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
@@ -149,6 +159,55 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
                 startActivityForResult(intent,100);
             }
         });
+
+
+        previous_marker = new ArrayList<Marker>();
+
+        Button button1 = (Button)mContext.findViewById(R.id.btn1);
+        button1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "1번눌림");
+                showFirstInformation(currentPosition);
+            }
+        });
+
+        Button button2 = (Button)mContext.findViewById(R.id.btn2);
+        button2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "2번눌림");
+                showSecondInformation(currentPosition);
+            }
+        });
+
+        Button button3 = (Button)mContext.findViewById(R.id.btn3);
+        button3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "3번눌림");
+                showThirdInformation(currentPosition);
+            }
+        });
+
+        Button button4 = (Button)mContext.findViewById(R.id.btn4);
+        button4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "4번눌림");
+                showFourthInformation(currentPosition);
+            }
+        });
+
+        Button button5 = (Button)mContext.findViewById(R.id.btn5);
+        button5.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d(TAG, "5번눌림");
+                showFifthInformation(currentPosition);
+            }
+        });
+
 
 
 
@@ -643,4 +702,138 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
     }
 
 
+    //근처찾기 method
+    @Override
+    public void onPlacesFailure(PlacesException e) {
+
+    }
+
+    @Override
+    public void onPlacesStart() {
+
+    }
+
+    @Override
+    public void onPlacesSuccess(final List<noman.googleplaces.Place> places) {
+        Log.d(TAG, "여기까지 오긴하냐");
+        getActivity().runOnUiThread(new Runnable() {
+
+            @Override
+            public void run() {
+                Log.d(TAG, "으아아아아ㅏ");
+
+                for (noman.googleplaces.Place place : places) {
+
+                    LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
+
+                    String markerSnippet = getCurrentAddress(latLng);
+
+                    MarkerOptions markerOptions = new MarkerOptions();
+                    markerOptions.position(latLng);
+                    markerOptions.title(place.getName());
+                    markerOptions.snippet(markerSnippet);
+                    Marker item = mMap.addMarker(markerOptions);
+                    previous_marker.add(item);
+                }
+
+                //중복마커 제거
+                HashSet<Marker> hashSet = new HashSet<Marker>();
+                hashSet.addAll(previous_marker);
+                previous_marker.clear();
+                previous_marker.addAll(hashSet);
+            }
+        });
+    }
+
+    @Override
+    public void onPlacesFinished() {
+
+    }
+
+    private void showFirstInformation(LatLng location)
+    {
+        mMap.clear();//지도 클리어
+
+        if (previous_marker != null)
+            previous_marker.clear();//지역정보 마커 클리어
+
+        Log.d(TAG, "1번실행");
+        new NRPlaces.Builder()
+                .listener(mapfragment.this)
+                .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                .latlng(location.latitude, location.longitude)//현재 위치
+                .radius(500) //500 미터 내에서 검색
+                .type(PlaceType.RESTAURANT) //음식점
+                .build()
+                .execute();
+    }
+    private void showSecondInformation(LatLng location)
+    {
+        mMap.clear();//지도 클리어
+
+        if (previous_marker != null)
+            previous_marker.clear();//지역정보 마커 클리어
+
+        Log.d(TAG, "2번실행");
+        new NRPlaces.Builder()
+                .listener(mapfragment.this)
+                .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                .latlng(location.latitude, location.longitude)//현재 위치
+                .radius(500) //500 미터 내에서 검색
+                .type(PlaceType.CAFE) //카페
+                .build()
+                .execute();
+    }
+    private void showThirdInformation(LatLng location)
+    {
+        mMap.clear();//지도 클리어
+
+        if (previous_marker != null)
+            previous_marker.clear();//지역정보 마커 클리어
+
+        Log.d(TAG, "3번실행");
+        new NRPlaces.Builder()
+                .listener(mapfragment.this)
+                .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                .latlng(location.latitude, location.longitude)//현재 위치
+                .radius(500) //500 미터 내에서 검색
+                .type(PlaceType.BAR) //바
+                .build()
+                .execute();
+    }
+    private void showFourthInformation(LatLng location)
+    {
+        mMap.clear();//지도 클리어
+
+        if (previous_marker != null)
+            previous_marker.clear();//지역정보 마커 클리어
+
+        Log.d(TAG, "4번실행");
+        new NRPlaces.Builder()
+                .listener(mapfragment.this)
+                .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                .latlng(location.latitude, location.longitude)//현재 위치
+                .radius(500) //500 미터 내에서 검색
+                .type(PlaceType.BUS_STATION) //버스
+                .build()
+                .execute();
+    }
+    private void showFifthInformation(LatLng location)
+    {
+        mMap.clear();//지도 클리어
+
+        if (previous_marker != null)
+            previous_marker.clear();//지역정보 마커 클리어
+
+        Log.d(TAG, "5번실행");
+        new NRPlaces.Builder()
+                .listener(mapfragment.this)
+                .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                .latlng(location.latitude, location.longitude)//현재 위치
+                .radius(500) //500 미터 내에서 검색
+                .type(PlaceType.SUBWAY_STATION) //지하철
+                .build()
+                .execute();
+    }
+    //여기까지 근처위치 찾기
 }

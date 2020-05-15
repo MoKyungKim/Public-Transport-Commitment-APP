@@ -1,6 +1,7 @@
 package com.example.cooperativeproject2.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,9 +22,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cooperativeproject2.Adapter.CalendarAdapter;
 import com.example.cooperativeproject2.Adapter.RecyclerViewAdapter;
+import com.example.cooperativeproject2.AddTaskActivity;
 import com.example.cooperativeproject2.DayInfo;
 import com.example.cooperativeproject2.Item;
 import com.example.cooperativeproject2.R;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -97,6 +101,7 @@ public class calfragment extends Fragment implements OnClickListener {
 
         ImageView bLastMonth = (ImageView) view.findViewById(R.id.calendar_prev_button);
         ImageView bNextMonth = (ImageView) view.findViewById(R.id.calendar_next_button);
+        FloatingActionButton bt_add = (FloatingActionButton) view.findViewById(R.id.Floatingbt_add);
 
         mTvCalendarTitle = (TextView) view.findViewById(R.id.gv_calendar_activity_tv_title);
         mGvCalendar = (GridView) view.findViewById(R.id.gv_calendar_activity_gv_calendar);
@@ -122,7 +127,15 @@ public class calfragment extends Fragment implements OnClickListener {
 
         RecyclerViewAdapter adapter = new RecyclerViewAdapter(context, items);
         recyclerView.setAdapter(adapter);
-        //
+
+        bt_add.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getActivity(), AddTaskActivity.class);
+                startActivityForResult(intent, 1);
+            }
+        });
+
 
 
         return view;

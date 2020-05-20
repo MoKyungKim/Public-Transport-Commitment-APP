@@ -8,6 +8,7 @@ query GetTask($id: ID!) {
     startLocation
     endLocation
     alarmTime
+    owner
   }
 }
 query ListTasks(
@@ -24,6 +25,7 @@ query ListTasks(
       startLocation
       endLocation
       alarmTime
+      owner
     }
     nextToken
   }

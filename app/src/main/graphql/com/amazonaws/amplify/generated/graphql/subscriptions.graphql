@@ -1,6 +1,6 @@
 # this is an auto generated file. This will be overwritten
-subscription OnCreateTask {
-  onCreateTask {
+subscription OnCreateTask($owner: String!) {
+  onCreateTask(owner: $owner) {
     id
     taskName
     date
@@ -8,10 +8,11 @@ subscription OnCreateTask {
     startLocation
     endLocation
     alarmTime
+    owner
   }
 }
-subscription OnUpdateTask {
-  onUpdateTask {
+subscription OnUpdateTask($owner: String!) {
+  onUpdateTask(owner: $owner) {
     id
     taskName
     date
@@ -19,10 +20,11 @@ subscription OnUpdateTask {
     startLocation
     endLocation
     alarmTime
+    owner
   }
 }
-subscription OnDeleteTask {
-  onDeleteTask {
+subscription OnDeleteTask($owner: String!) {
+  onDeleteTask(owner: $owner) {
     id
     taskName
     date
@@ -30,5 +32,6 @@ subscription OnDeleteTask {
     startLocation
     endLocation
     alarmTime
+    owner
   }
 }

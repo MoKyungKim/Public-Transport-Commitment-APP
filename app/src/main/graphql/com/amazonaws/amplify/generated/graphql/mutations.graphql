@@ -11,6 +11,7 @@ mutation CreateTask(
     startLocation
     endLocation
     alarmTime
+    owner
   }
 }
 mutation UpdateTask(
@@ -25,6 +26,7 @@ mutation UpdateTask(
     startLocation
     endLocation
     alarmTime
+    owner
   }
 }
 mutation DeleteTask(
@@ -39,5 +41,6 @@ mutation DeleteTask(
     startLocation
     endLocation
     alarmTime
+    owner
   }
 }

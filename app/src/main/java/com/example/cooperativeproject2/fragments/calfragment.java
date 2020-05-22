@@ -38,7 +38,7 @@ import java.util.Calendar;
 //import com.example.cooperativeproject2.SingModel;
 
 
-public class calfragment extends Fragment implements OnClickListener {
+public class calfragment extends Fragment implements OnClickListener, AdapterView.OnItemClickListener {
 
     View view;
     /**
@@ -133,6 +133,13 @@ public class calfragment extends Fragment implements OnClickListener {
             public void onClick(View view) {
                 Intent intent = new Intent(getActivity(), AddTaskActivity.class);
                 startActivityForResult(intent, 1);
+            }
+        });
+
+       mGvCalendar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Toast.makeText(context,"모니hi", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -255,10 +262,10 @@ public class calfragment extends Fragment implements OnClickListener {
         return calendar;
     }
 
-
+    @Override
     public void onItemClick (AdapterView < ? > parent, View v,int position, long arg3)
     {
-
+        Toast.makeText(getActivity(), "hi", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -290,6 +297,4 @@ public class calfragment extends Fragment implements OnClickListener {
         items.add(new Item("2020년 5월 17일", "가족모임 "));
         items.add(new Item("2020년 5월 18일", "초등학교 동창회"));
     }
-
-
 }

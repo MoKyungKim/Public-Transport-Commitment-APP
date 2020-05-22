@@ -46,7 +46,7 @@ public class AddTaskActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
 
-        /*mAWSAppSyncClient = AWSAppSyncClient.builder()
+        mAWSAppSyncClient = AWSAppSyncClient.builder()
                 .context(getApplicationContext())
                 .awsConfiguration(new AWSConfiguration(getApplicationContext()))
                 .cognitoUserPoolsAuthProvider(new CognitoUserPoolsAuthProvider() {
@@ -60,7 +60,8 @@ public class AddTaskActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .build();*/
+                .build();
+
         t_name = (TextView)findViewById(R.id.text_name);
         t_date = (TextView)findViewById(R.id.text_date);
         t_start = (TextView)findViewById(R.id.text_start);

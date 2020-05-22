@@ -54,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
         mAWSAppSyncClient = ClientFactory.appSyncClient();
 
-        /*mAWSAppSyncClient = AWSAppSyncClient.builder()
+        mAWSAppSyncClient = AWSAppSyncClient.builder()
                 .context(getApplicationContext())
                 .awsConfiguration(new AWSConfiguration(getApplicationContext()))
                 .cognitoUserPoolsAuthProvider(new CognitoUserPoolsAuthProvider() {
@@ -68,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .build();*/
+                .build();
 
         viewPager = findViewById(R.id.viewPager);
         Button btn_first = findViewById(R.id.btn_cal);

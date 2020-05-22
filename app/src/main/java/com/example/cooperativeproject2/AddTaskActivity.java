@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.TimePicker;
 
 import com.amazonaws.amplify.generated.graphql.CreateTaskMutation;
 import com.amazonaws.amplify.generated.graphql.ListTasksQuery;
@@ -21,6 +22,7 @@ import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider
 import com.apollographql.apollo.GraphQLCall;
 import com.apollographql.apollo.api.Response;
 import com.apollographql.apollo.exception.ApolloException;
+import com.example.cooperativeproject2.AWS.ClientFactory;
 
 import javax.annotation.Nonnull;
 
@@ -37,13 +39,14 @@ public class AddTaskActivity extends AppCompatActivity {
     TextView t_end;
     TextView t_alarm;
     Button bt_task;
+    TimePicker mTimePicker;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_task);
 
-        mAWSAppSyncClient = AWSAppSyncClient.builder()
+        /*mAWSAppSyncClient = AWSAppSyncClient.builder()
                 .context(getApplicationContext())
                 .awsConfiguration(new AWSConfiguration(getApplicationContext()))
                 .cognitoUserPoolsAuthProvider(new CognitoUserPoolsAuthProvider() {
@@ -57,15 +60,14 @@ public class AddTaskActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .build();
-
-       t_name = (TextView)findViewById(R.id.text_name);
+                .build();*/
+        t_name = (TextView)findViewById(R.id.text_name);
         t_date = (TextView)findViewById(R.id.text_date);
-        t_time = (TextView)findViewById(R.id.text_time);
         t_start = (TextView)findViewById(R.id.text_start);
         t_end = (TextView)findViewById(R.id.text_end);
         t_alarm = (TextView)findViewById(R.id.text_alarmtime);
         bt_task = (Button)findViewById(R.id.bt_task);
+        mTimePicker = (TimePicker)findViewById(R.id.text_time);
 
         bt_task.setOnClickListener(new View.OnClickListener() {
             @Override

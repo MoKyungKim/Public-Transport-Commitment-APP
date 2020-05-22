@@ -31,6 +31,7 @@ import com.amazonaws.regions.Regions;
 import com.apollographql.apollo.GraphQLCall;
 import com.apollographql.apollo.api.Response;
 import com.apollographql.apollo.exception.ApolloException;
+import com.example.cooperativeproject2.AWS.ClientFactory;
 import com.example.cooperativeproject2.Adapter.PagerAdapter;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.tabs.TabLayout;
@@ -51,9 +52,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main3);
 
+        mAWSAppSyncClient = ClientFactory.appSyncClient();
 
-
-        mAWSAppSyncClient = AWSAppSyncClient.builder()
+        /*mAWSAppSyncClient = AWSAppSyncClient.builder()
                 .context(getApplicationContext())
                 .awsConfiguration(new AWSConfiguration(getApplicationContext()))
                 .cognitoUserPoolsAuthProvider(new CognitoUserPoolsAuthProvider() {
@@ -67,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .build();
+                .build();*/
 
         viewPager = findViewById(R.id.viewPager);
         Button btn_first = findViewById(R.id.btn_cal);

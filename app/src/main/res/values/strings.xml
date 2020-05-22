@@ -7,4 +7,7 @@
     <string name="app_namess">CooperativeProject2</string>
     <string name="odsay_key">LVmXMmKdssPNt3dDw1an5zG0hX5J3MI6gLUXd5Ck9rY</string>
     <string name="enter_address">enter_address</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

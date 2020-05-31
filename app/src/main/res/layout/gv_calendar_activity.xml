@@ -140,13 +140,11 @@
          android:gravity="center"
          android:textColor="#000"
          android:textStyle="bold"/>
-
      <LinearLayout
          android:layout_width="fill_parent"
          android:layout_height="fill_parent"
          android:orientation="horizontal"
          android:gravity="center">
-
          <ImageView
              android:id="@+id/calendar_prev_button"
              android:layout_width="30dp"
@@ -154,7 +152,6 @@
              android:layout_centerVertical="true"
              android:layout_alignParentLeft="true"
              android:src="@drawable/previous_icon"/>
-
          <ImageView
              android:id="@+id/calendar_next_button"
              android:layout_width="30dp"
@@ -162,8 +159,6 @@
              android:layout_centerVertical="true"
              android:layout_alignParentRight="true"
              android:src="@drawable/next_icon"/>
-
-
          <GridView
          android:id="@+id/gv_calendar_activity_gv_calendar"
          android:layout_width="320dp"
@@ -172,7 +167,6 @@
          android:listSelector="@drawable/gridview_selector"
          android:numColumns="7"
          android:stretchMode="columnWidth" />
-
      </LinearLayout>
      -->
 
@@ -196,7 +190,11 @@
             android:layout_marginEnd="23dp"
             android:layout_marginBottom="16dp"
             android:clickable="true"
-            app:srcCompat="@drawable/ic_add" />
+            app:srcCompat="@drawable/ic_add"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginLeft="332dp"
+            android:layout_marginRight="23dp" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:layout_width="match_parent"
@@ -208,5 +206,3 @@
     </RelativeLayout>
 
 </LinearLayout>
-
-

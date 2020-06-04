@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 
+import com.example.cooperativeproject2.AWS.AuthenticationActivity;
+
 public class LoadingActivity extends Activity {
 
     @Override
@@ -15,7 +17,7 @@ public class LoadingActivity extends Activity {
         handler.postDelayed(new Runnable(){
             @Override
             public void run() {
-                Intent intent = new Intent (getApplicationContext(), MainActivity.class);
+                Intent intent = new Intent (getApplicationContext(), AuthenticationActivity.class);
                 startActivity(intent); //다음화면으로 넘어감
                 finish();
             }

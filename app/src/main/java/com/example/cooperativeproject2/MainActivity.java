@@ -1,6 +1,5 @@
 package com.example.cooperativeproject2;
 
-import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -53,13 +52,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main3);
 
-        //로딩 액티비티
-        /*
-        Intent intent = new Intent(this, LoadingActivity.class);
-        startActivity(intent);*/
-
-
-        /*
         mAWSAppSyncClient = ClientFactory.appSyncClient();
 
         mAWSAppSyncClient = AWSAppSyncClient.builder()
@@ -76,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 })
-                .build();*/
+                .build();
 
         viewPager = findViewById(R.id.viewPager);
         Button btn_first = findViewById(R.id.btn_cal);

@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:androld="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/activity_register"
+    android:id="@+id/activity_main"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <!--원래는 위에 이 문장 포함 tools:context="com.dowellcomputer.registeration.RegisterActivity"-->

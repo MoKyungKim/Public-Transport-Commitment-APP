@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/day_cell_ll_background"
@@ -8,22 +9,7 @@
     android:gravity="center"
     android:background="@drawable/bg_day">
 
-    <!-- 추가 -->
-
-    <!-- 맨위에거랑 사이즈 바뀜 -->
-
-
-    <!--
-    <ImageView
-        android:id="@+id/iv_selected"
-        android:layout_width="28dp"
-        android:layout_height="40dp"
-        android:gravity="center_horizontal"
-        android:src="@drawable/bg_selected"
-        android:visibility="invisible" />
--->
     <TextView
-        android:text="11"
         android:id="@+id/day_cell_tv_day"
         android:layout_width="30dp"
         android:layout_height="41dp"
@@ -32,53 +18,24 @@
 
 </LinearLayout>
 
-<!--
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/day_cell_ll_background"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:layout_centerHorizontal="true"
-    android:layout_centerVertical="true"
-    android:background="@drawable/circle"
-    android:tag="dayOfTheMonthBackground">
 
-    <TextView
-        android:id="@+id/day_cell_tv_day"
-        android:layout_width="30dp"
-        android:layout_height="41dp"
-        android:textSize="12sp"
-        android:layout_centerInParent="true"
-        android:gravity="center"
-        android:tag="dayOfTheMonthText"/>
-
+    <!--
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/textView"
-        android:layout_centerHorizontal="true"
-        android:divider="@drawable/empty_divider"
-        android:gravity="center_horizontal"
-        android:orientation="horizontal"
-        android:showDividers="middle">
-
-        <ImageView
-            android:layout_width="@dimen/roboto_calendar_circle_size"
-            android:layout_height="@dimen/roboto_calendar_circle_size"
-            android:src="@drawable/circle"
-            android:tag="dayOfTheMonthCircleImage1"
-            android:tint="@color/colorPrimary"
-            android:visibility="visible" />
-
-        <ImageView
-            android:layout_width="@dimen/roboto_calendar_circle_size"
-            android:layout_height="@dimen/roboto_calendar_circle_size"
-            android:src="@drawable/circle"
-            android:tag="dayOfTheMonthCircleImage2"
-            android:tint="@color/colorAccent"
-            android:visibility="visible" />
-    </LinearLayout>
-
-</LinearLayout>-->
+        android:id="@+id/day_cell_ll_background"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="45dp"
+        android:layout_height="53dp"
+        android:background="@drawable/bg_day">
 
 
+        <TextView
+            android:id="@+id/day_cell_tv_day"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:paddingLeft="3dp"
+            android:paddingTop="2dp"
+            android:gravity="center"
+            android:textSize="10sp"/>
+
+
+    </LinearLayout>-->

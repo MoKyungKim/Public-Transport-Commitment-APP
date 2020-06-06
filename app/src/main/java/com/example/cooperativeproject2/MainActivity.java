@@ -1,46 +1,27 @@
 package com.example.cooperativeproject2;
 
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
-import android.widget.Toast;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
-import androidx.viewpager.widget.ViewPager;
 
-import com.amazonaws.amplify.generated.graphql.CreateTaskMutation;
-import com.amazonaws.amplify.generated.graphql.ListTasksQuery;
-import com.amazonaws.amplify.generated.graphql.OnCreateTaskSubscription;
-import com.amazonaws.auth.CognitoCachingCredentialsProvider;
-import com.amazonaws.mobile.client.AWSMobileClient;
-import com.amazonaws.mobile.client.Callback;
-import com.amazonaws.mobile.client.IdentityProvider;
-import com.amazonaws.mobile.client.UserStateDetails;
-import com.amazonaws.mobile.client.UserStateListener;
-import com.amazonaws.mobile.config.AWSConfiguration;
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient;
 import com.amazonaws.mobileconnectors.appsync.AppSyncSubscriptionCall;
-import com.amazonaws.mobileconnectors.appsync.fetcher.AppSyncResponseFetchers;
-import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider;
-import com.amazonaws.mobileconnectors.lambdainvoker.LambdaFunctionException;
-import com.amazonaws.mobileconnectors.lambdainvoker.LambdaInvokerFactory;
-import com.amazonaws.regions.Regions;
-import com.apollographql.apollo.GraphQLCall;
 import com.apollographql.apollo.api.Response;
 import com.apollographql.apollo.exception.ApolloException;
 import com.example.cooperativeproject2.AWS.ClientFactory;
 import com.example.cooperativeproject2.Adapter.PagerAdapter;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.google.android.material.tabs.TabLayout;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 import javax.annotation.Nonnull;
 
-import type.CreateTaskInput;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
+
+//import com.amazonaws.amplify.generated.graphql.CreateTaskMutation;
+//import com.amazonaws.amplify.generated.graphql.ListTasksQuery;
+//import com.amazonaws.amplify.generated.graphql.OnCreateTaskSubscription;
+//import type.CreateTaskInput;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -52,9 +33,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main3);
 
-        mAWSAppSyncClient = ClientFactory.appSyncClient();
+      mAWSAppSyncClient = ClientFactory.appSyncClient();
 
-        mAWSAppSyncClient = AWSAppSyncClient.builder()
+        /*mAWSAppSyncClient = AWSAppSyncClient.builder()
                 .context(getApplicationContext())
                 .awsConfiguration(new AWSConfiguration(getApplicationContext()))
                 .cognitoUserPoolsAuthProvider(new CognitoUserPoolsAuthProvider() {
@@ -69,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .build();
-
+*/
         viewPager = findViewById(R.id.viewPager);
         Button btn_first = findViewById(R.id.btn_cal);
         Button btn_second = findViewById(R.id.btn_find);
@@ -91,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
         btn_third.setOnClickListener(movePageListener);
         btn_third.setTag(2);
     }
-    public void runMutation(){
+    /*public void runMutation(){
         CreateTaskInput createTaskInput = CreateTaskInput.builder().
                 taskName("Task Name").
                 date(20200509).
@@ -99,9 +80,9 @@ public class MainActivity extends AppCompatActivity {
 
         mAWSAppSyncClient.mutate(CreateTaskMutation.builder().input(createTaskInput).build())
                 .enqueue(mutationCallback);
-    }
+    }*/
 
-    private GraphQLCall.Callback<CreateTaskMutation.Data> mutationCallback = new GraphQLCall.Callback<CreateTaskMutation.Data>() {
+    /*private GraphQLCall.Callback<CreateTaskMutation.Data> mutationCallback = new GraphQLCall.Callback<CreateTaskMutation.Data>() {
         @Override
         public void onResponse(@Nonnull Response<CreateTaskMutation.Data> response) {
             Log.i("Results", "Added Task");
@@ -111,8 +92,8 @@ public class MainActivity extends AppCompatActivity {
         public void onFailure(@Nonnull ApolloException e) {
             Log.e("Error", e.toString());
         }
-    };
-    public void runQuery(){
+    };*/
+    /*public void runQuery(){
         mAWSAppSyncClient.query(ListTasksQuery.builder().build())
                 .responseFetcher(AppSyncResponseFetchers.CACHE_AND_NETWORK)
                 .enqueue(todosCallback);
@@ -135,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         OnCreateTaskSubscription subscription = OnCreateTaskSubscription.builder().build();
         subscriptionWatcher = mAWSAppSyncClient.subscribe(subscription);
         subscriptionWatcher.execute(subCallback);
-    }
+    }*/
 
     private AppSyncSubscriptionCall.Callback subCallback = new AppSyncSubscriptionCall.Callback() {
         @Override

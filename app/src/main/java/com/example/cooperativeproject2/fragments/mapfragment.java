@@ -241,7 +241,7 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
             selectedItem.add(itemsInKor[0]);
             builder.setTitle("1번");
             builder.setSingleChoiceItems(R.array.array_Kor,
-                    0, (dialog, which) -> {
+                    placefirst, (dialog, which) -> {
                         selectedItem.clear();
                         selectedItem.add(itemsInKor[which]);
                         checknum = which;         //문제점 ok를 누르지 않아도 placefirst에 저장이되어버림
@@ -283,7 +283,7 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
             selectedItem.add(itemsInKor[0]);
             builder.setTitle("2번");
             builder.setSingleChoiceItems(R.array.array_Kor,
-                    0, (dialog, which) -> {
+                    placesecond, (dialog, which) -> {
                         selectedItem.clear();
                         selectedItem.add(itemsInKor[which]);
                         checknum = which;
@@ -325,7 +325,7 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
             selectedItem.add(itemsInKor[0]);
             builder.setTitle("3번");
             builder.setSingleChoiceItems(R.array.array_Kor,
-                    0, (dialog, which) -> {
+                    placethird, (dialog, which) -> {
                         selectedItem.clear();
                         selectedItem.add(itemsInKor[which]);
                         checknum = which;
@@ -367,7 +367,7 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
             selectedItem.add(itemsInKor[0]);
             builder.setTitle("4번");
             builder.setSingleChoiceItems(R.array.array_Kor,
-                    0, (dialog, which) -> {
+                    placefourth, (dialog, which) -> {
                         selectedItem.clear();
                         selectedItem.add(itemsInKor[which]);
                         checknum = which;
@@ -405,7 +405,7 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
             selectedItem.add(distance[0]);      //왜하는지 모르겠음
             builder.setTitle("5번");
             builder.setSingleChoiceItems(R.array.distance,
-                    0, new DialogInterface.OnClickListener() {
+                    placefifth, new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
                             selectedItem.clear();

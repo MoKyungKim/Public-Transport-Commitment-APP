@@ -523,8 +523,9 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
+                String tag = marker.getTag().toString();
                 Intent intent = new Intent(Intent.ACTION_DIAL);
-                intent.setData(Uri.parse("tel:"+phone));//...문제점 함수만들기 마지막번호만 하는 것이 아닌
+                intent.setData(Uri.parse(tag));//...문제점 함수만들기 마지막번호만 하는 것이 아닌
                 startActivity(intent);
             }
         });
@@ -980,6 +981,7 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
                 markerOptions.title(place.getName());
                 markerOptions.snippet(phone);
                 Marker item = mMap.addMarker(markerOptions);
+                item.setTag("tel:"+phone);
                 previous_marker.add(item);
             }
 

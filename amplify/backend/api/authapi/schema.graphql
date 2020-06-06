@@ -1,9 +1,0 @@
-type Task @model @auth(rules: [{allow: owner, queries:[get, list], mutations: [create, update, delete]}]){
-	id: ID!
-	taskName : String!
-	date : Int
-	time : Int
-	startLocation : String
-	endLocation : String
-	alarmTime : Int
-}

@@ -1,7 +1,5 @@
 package com.example.cooperativeproject2.AWS;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +10,8 @@ import com.amazonaws.mobile.client.SignInUIOptions;
 import com.amazonaws.mobile.client.UserStateDetails;
 import com.example.cooperativeproject2.MainActivity;
 import com.example.cooperativeproject2.R;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class AuthenticationActivity extends AppCompatActivity {
 

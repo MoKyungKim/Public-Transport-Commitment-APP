@@ -13,7 +13,7 @@ public class GetStationByUid {
         String SERVICE_KEY = "Kqvf%2B3KY%2FnwDDQkOOn%2FcPNeGXdmJk5ax24ehvDkv80Fa5wUHfZzzGuhhjn%2FrCfNSZsez1ppmSBs%2BY%2BwKg%2BviDg%3D%3D";
         StringBuilder urlBuilder = new StringBuilder("http://ws.bus.go.kr/api/rest/stationinfo/getStationByUid"); /*URL*/
         urlBuilder.append("?" + URLEncoder.encode("ServiceKey","UTF-8") + "=" + SERVICE_KEY ); /*Service Key*/
-        urlBuilder.append("&" + URLEncoder.encode("arsId","UTF-8") + "=" + URLEncoder.encode("", "UTF-8")); /*정류소고유번호*/
+        urlBuilder.append("&" + URLEncoder.encode("arsId","UTF-8") + "=" + URLEncoder.encode("11518", "UTF-8")); /*정류소고유번호*/
         URL url = new URL(urlBuilder.toString());
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestMethod("GET");

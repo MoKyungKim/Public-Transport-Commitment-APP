@@ -1,18 +1,31 @@
 package com.example.cooperativeproject2.fragments;
 
 import android.content.Context;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.example.cooperativeproject2.Adapter.SearchAdapter;
+import com.example.cooperativeproject2.Item;
 import com.example.cooperativeproject2.R;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.odsay.odsayandroidsdk.API;
 import com.odsay.odsayandroidsdk.ODsayData;
 import com.odsay.odsayandroidsdk.ODsayService;
@@ -20,23 +33,65 @@ import com.odsay.odsayandroidsdk.OnResultCallbackListener;
 
 import org.json.JSONObject;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+//위치 받아오기
+//길찾기
+
+
+//class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
 
 
-public class findfragment extends Fragment {
+  //      override fun onCreate(savedInstanceState: Bundle?) {
+    //    super.onCreate(savedInstanceState)
+      //  setContentView(R.layout.activity_maps)
+        //// Obtain the SupportMapFragment and get notified when the map is ready to be used.
+       // val mapFragment = supportFragmentManager
+       // .findFragmentById(R.id.map) as SupportMapFragment
+       // mapFragment.getMapAsync(this)
+        //}
+
+
+public class findfragment extends Fragment implements OnMapReadyCallback {
+
+
+    private ArrayList<Item> items = new ArrayList<>();
+     // 데이터를 넣은 리스트변수
+    private RecyclerView recyclerView;          // 검색을 보여줄 리스트변수
+    private EditText startSearch;        // 출발 검색어를 입력할 Input 창
+    private EditText endSearch;        // 도착 검색어를 입력할 Input 창
+    private SearchAdapter adapter;      // 리스트뷰에 연결할 아답터
+    private LinearLayoutManager mLayoutManager;
+
+
+    //구글맵이용
+    private GoogleMap fMap;
+    private MapView mapView = null;
+    private Geocoder geocoder;
+    private Button button;
+
+
+
+
 
     private static findfragment INSTANCE = null;
-
-    View view;
+    private  View view;
     private Context context;
     private Spinner sp_api;
     private RadioGroup rg_object_type;
     private RadioButton rb_json, rb_map;
+
     private Button bt_api_call;
     private TextView tv_data;
 
@@ -55,25 +110,200 @@ public class findfragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
 
+    }
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        view= inflater.inflate(R.layout.findfragment, container, false);
-        sp_api = (Spinner) view.findViewById(R.id.sp_api);
-        rg_object_type = (RadioGroup) view.findViewById(R.id.rg_object_type);
-        bt_api_call = (Button) view.findViewById(R.id.bt_api_call);
-        rb_json = (RadioButton) view.findViewById(R.id.rb_json);
-        rb_map = (RadioButton) view.findViewById(R.id.rb_map);
-        tv_data = (TextView) view.findViewById(R.id.tv_data);
-        sp_api.setSelection(0);
+        view= inflater.inflate(R.layout.layout_find, container, false);
 
-        init();
+
+
+        mapView = view.findViewById(R.id.map);
+        button = view.findViewById(R.id.ZIP);
+        button = view.findViewById(R.id.ZIP2);
+        button = view.findViewById(R.id.star);
+
+        view = view.findViewById(R.id.layout_find);
+
+
+        recyclerView = view.findViewById(R.id.recycler_find);
+        startSearch = view.findViewById(R.id.start_search);
+        endSearch =view.findViewById(R.id.end_search);
+
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(mLayoutManager);
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(layoutManager);
+
+        List<Recent> potionList = new ArrayList<Recent>();
+        for(int i=0;i<30;i++){
+            Recent rc = new Recent(i+"","");
+            potionList.add(rc);
+        }
+
+        for(int i=0;i<30;i++){
+            Recent rc = new Recent(i+""+i,"");
+            potionList.add(rc);
+        }
+
+        for(int i=0;i<30;i++){
+            Recent rc = new Recent(i+""+i+""+i,"");
+            potionList.add(rc);
+        }
+
+        adapter = new SearchAdapter(this, potionList);
+        recyclerView.setAdapter(adapter);
+
+        startSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String text = startSearch.getText().toString()
+                        .toLowerCase(Locale.getDefault());
+                adapter.filter(text);
+
+            }
+        });
+
+        endSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                String text = endSearch.getText().toString()
+                        .toLowerCase(Locale.getDefault());
+                adapter.filter(text);
+
+            }
+        });
+
+
+
+
+       // sp_api.setSelection(0);
+        initdata();
         return view;
     }
+
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera. In this case,
+     * we just add a marker near Sydney, Australia.
+     * If Google Play services is not installed on the device, the user will be prompted to install
+     * it inside the SupportMapFragment. This method will only be triggered once the user has
+     * installed Google Play services and returned to the app.
+     */
+    @Override
+    public void onMapReady(final GoogleMap googleMap) {
+        fMap = googleMap;
+
+        // 맵 터치 이벤트 구현 //
+        fMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
+            @Override
+            public void onMapClick(LatLng point) {
+                MarkerOptions mOptions = new MarkerOptions();
+                // 마커 타이틀
+                mOptions.title("마커 좌표");
+                Double latitude = point.latitude; // 위도
+                Double longitude = point.longitude; // 경도
+                // 마커의 스니펫(간단한 텍스트) 설정
+                mOptions.snippet(latitude.toString() + ", " + longitude.toString());
+                // LatLng: 위도 경도 쌍을 나타냄
+                mOptions.position(new LatLng(latitude, longitude));
+                // 마커(핀) 추가
+                googleMap.addMarker(mOptions);
+            }
+        });
+
+        ////////////////////
+
+        // 버튼 이벤트
+        button.setOnClickListener(new Button.OnClickListener(){
+            @Override
+            public void onClick(View v){
+                String str1=startSearch.getText().toString();
+                String str2=endSearch.getText().toString();
+                List<Address> addressList = null;
+                try {
+                    // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
+                    addressList = geocoder.getFromLocationName(
+                            str1, // 주소
+                            10); // 최대 검색 결과 개수
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+                try {
+                    // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
+                    addressList = geocoder.getFromLocationName(
+                            str2, // 주소
+                            10); // 최대 검색 결과 개수
+                }
+                catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                System.out.println(addressList.get(0).toString());
+                // 콤마를 기준으로 split
+                String []splitStr = addressList.get(0).toString().split(",");
+                String address = splitStr[0].substring(splitStr[0].indexOf("\"") + 1,splitStr[0].length() - 2); // 주소
+                System.out.println(address);
+
+                String latitude = splitStr[10].substring(splitStr[10].indexOf("=") + 1); // 위도
+                String longitude = splitStr[12].substring(splitStr[12].indexOf("=") + 1); // 경도
+                System.out.println(latitude);
+                System.out.println(longitude);
+
+                // 좌표(위도, 경도) 생성
+                LatLng point = new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
+                // 마커 생성
+                MarkerOptions mOptions2 = new MarkerOptions();
+                mOptions2.title("search result");
+                mOptions2.snippet(address);
+                mOptions2.position(point);
+                // 마커 추가
+                fMap.addMarker(mOptions2);
+                // 해당 좌표로 화면 줌
+                fMap.moveCamera(CameraUpdateFactory.newLatLngZoom(point,15));
+            }
+        });
+
+
+        ////////////////////
+
+        // Add a marker in Sydney and move the camera
+      //  LatLng sydney = new LatLng(-34, 151);
+        //fMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        //fMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+    }
+
+
+
+
+
    @Override
    public void onAttach(Context context) {
 
@@ -90,8 +320,8 @@ public class findfragment extends Fragment {
         odsayService.setReadTimeout(5000);//서버연결제한시간설정(단위는 밀리세컨드 현재 5초로 설정)
         odsayService.setConnectionTimeout(5000);//데이터획득제한시간설정(위와 동일)
 
-        bt_api_call.setOnClickListener(onClickListener);
-        sp_api.setOnItemSelectedListener(onItemSelectedListener);
+//        bt_api_call.setOnClickListener(onClickListener);
+        //sp_api.setOnItemSelectedListener(onItemSelectedListener);
         rg_object_type.setOnCheckedChangeListener(onCheckedChangeListener);
     }
 
@@ -208,7 +438,12 @@ public class findfragment extends Fragment {
         }
     };
 
-
-
+    private void initdata() {
+        //초기화
+        items.clear();
+        items.add(new Item("2020년 5월 15일", "민주랑 약속 "));
+        items.add(new Item("2020년 5월 17일", "가족모임 "));
+        items.add(new Item("2020년 5월 18일", "초등학교 동창회"));
+    }
 
 }

@@ -1,0 +1,36 @@
+{
+    "UserAgent": "aws-amplify-cli/0.1.0",
+    "Version": "0.1.0",
+    "IdentityManager": {
+        "Default": {}
+    },
+    "AppSync": {
+        "Default": {
+            "ApiUrl": "https://dgdmqlx5rfcxnatp2egpa5u6dy.appsync-api.ap-northeast-2.amazonaws.com/graphql",
+            "Region": "ap-northeast-2",
+            "AuthMode": "AMAZON_COGNITO_USER_POOLS",
+            "ClientDatabasePrefix": "authapi_AMAZON_COGNITO_USER_POOLS"
+        }
+    },
+    "CredentialsProvider": {
+        "CognitoIdentity": {
+            "Default": {
+                "PoolId": "ap-northeast-2:67135747-7539-4bc4-8b6d-cf8f4987a15d",
+                "Region": "ap-northeast-2"
+            }
+        }
+    },
+    "CognitoUserPool": {
+        "Default": {
+            "PoolId": "ap-northeast-2_GTvFtjr7f",
+            "AppClientId": "76dfcc83b1i76ua6fpkus9929s",
+            "AppClientSecret": "1ntveuje7u6ssvroc3ubu8is6slsdoqdkkll2taj9h9kor5g25tj",
+            "Region": "ap-northeast-2"
+        }
+    },
+    "Auth": {
+        "Default": {
+            "authenticationFlowType": "USER_SRP_AUTH"
+        }
+    }
+}

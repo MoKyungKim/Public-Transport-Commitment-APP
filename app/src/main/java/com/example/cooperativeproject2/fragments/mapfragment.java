@@ -4,14 +4,17 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Looper;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +32,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 
 import com.example.cooperativeproject2.R;
+import com.example.cooperativeproject2.models.Task;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -53,11 +57,15 @@ import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import noman.googleplaces.NRPlaces;
 import noman.googleplaces.PlaceType;
@@ -65,13 +73,22 @@ import noman.googleplaces.PlacesException;
 import noman.googleplaces.PlacesListener;
 
 import static android.content.Context.LOCATION_SERVICE;
+import static android.content.Context.MODE_PRIVATE;
 
 public class mapfragment extends Fragment implements OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback,
         PlacesListener {
 
+    private JSONObject jsonObject1;
+    private JSONObject jsonObject2;
+    private String phone;
+    public String place_id;
+    public static mapfragment context;
     private FragmentActivity mContext;
+    private Boolean startcheck = true;
     private EditText editText;
+    private LatLng findLatLng = null;
+    private Boolean findCheck = false;      //false면 현재위치에서 검색, true면 검색한 곳에서 검색
     private MapView mapView = null;
     private GoogleMap mMap;
     private Marker currentMarker = null;
@@ -80,8 +97,14 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
     private Location location;
     private Geocoder geocoder;
     private View mLayout;
+    private int placefirst = 0;     //앱 실행시 초기값이 되는데
+    private int placesecond = 1;    //해결하려면 저장된 string을 여기로 가져와야지 아니면 integer도 받든가
+    private int placethird = 2;
+    private int placefourth = 3;
+    private int placefifth = 4;
+    private int checknum = -1;
+    private int range = 500;  //범위다
     private List<Marker> previous_marker;
-
     private static final String TAG = "googlemap_example";
     private static final int GPS_ENABLE_REQUEST_CODE = 2001;
     private static final int UPDATE_INTERVAL_MS = 1000;  // 1초
@@ -93,7 +116,17 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
 
     // 앱을 실행하기 위해 필요한 퍼미션을 정의합니다.
     private String[] REQUIRED_PERMISSIONS  = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION};  // 외부 저장소
+    private String inputText1;
+    private String inputText2;
+    private String inputText3;
+    private String inputText4;
+    private String inputText5;
 
+    private int inputNum1;
+    private int inputNum2;
+    private int inputNum3;
+    private int inputNum4;
+    private int inputNum5;
 
     private Location mCurrentLocatiion;
     private LatLng currentPosition;
@@ -112,6 +145,33 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
     public void onCreate(@Nullable Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
+        findCheck = false;
+        context = this;     //placeid 다른 class에서 사용하기 위해
+        SharedPreferences sharedPreferences = mContext.getSharedPreferences("test",MODE_PRIVATE);
+        inputText1 = sharedPreferences.getString("inputText1","");
+        inputText2 = sharedPreferences.getString("inputText2","");
+        inputText3 = sharedPreferences.getString("inputText3","");
+        inputText4 = sharedPreferences.getString("inputText4","");
+        inputText5 = sharedPreferences.getString("inputText5","");
+
+        inputNum1 = sharedPreferences.getInt("inputNum1", -1);
+        inputNum2 = sharedPreferences.getInt("inputNum2", -1);
+        inputNum3 = sharedPreferences.getInt("inputNum3", -1);
+        inputNum4 = sharedPreferences.getInt("inputNum4", -1);
+        inputNum5 = sharedPreferences.getInt("inputNum5", -1);
+        placefirst = inputNum1;
+        placesecond = inputNum2;
+        placethird = inputNum3;
+        placefourth = inputNum4;
+        placefifth = inputNum5;
+        if(placefifth == 0)
+            range = 500;
+        else if(placefifth == 1)
+            range = 1000;
+        else if(placefifth == 2)
+            range = 1500;
+        else if(placefifth == 3)
+            range = 2000;
     }
 
     @Nullable
@@ -138,74 +198,245 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
         //Activity와 Fragment의 뷰가 모두 생성된 상태로, view를 변경하는 작업 가능
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "onActivityCreated");
-
         //액티비티가 처음 생성될 때 실행되는 함수
         MapsInitializer.initialize(mContext);
+
+        final String[] itemsInKor = getResources().getStringArray(R.array.array_Kor);
+        final String[] distance = getResources().getStringArray(R.array.distance);
+        final ArrayList<String> selectedItem  = new ArrayList<String>();
+
         //Initialize places
         Places.initialize(mContext.getApplicationContext(),"AIzaSyBGN9HuTUWakZjy19FTkGPw4KZML3sbJfc");
 
         //Set EditText non focusable
         editText.setFocusable(false);
-        editText.setOnClickListener(new View.OnClickListener(){
-            @Override
-            public void onClick(View v) {
-                //Initialize place field list
-                List<Place.Field> fieldList = Arrays.asList(Place.Field.ADDRESS,
-                        Place.Field.LAT_LNG,Place.Field.NAME);
-                //Create intent
-                Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.
-                        OVERLAY,fieldList).build(mContext);
-                //Start activity result
-                startActivityForResult(intent,100);
-            }
+        editText.setOnClickListener(v -> {
+            //Initialize place field list
+            List<Place.Field> fieldList = Arrays.asList(Place.Field.ADDRESS,
+                    Place.Field.LAT_LNG,Place.Field.NAME);
+            //Create intent
+            Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.
+                    OVERLAY,fieldList).build(mContext);
+            //Start activity result
+            startActivityForResult(intent,100);
         });
 
 
         previous_marker = new ArrayList<Marker>();
 
-        Button button1 = (Button)mContext.findViewById(R.id.btn1);
-        button1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "1번눌림");
-                showFirstInformation(currentPosition);
-            }
+        final Button button1 = (Button)mContext.findViewById(R.id.btn1);
+        if(inputText1.equals(""));            //sharedpreference가 비어있으면 초기 설정값이 출력
+        else
+            button1.setText(inputText1);
+        button1.setOnClickListener(v -> {
+            Log.d(TAG, "1번눌림");
+            if(!findCheck)
+                showFirstInformation(currentPosition);  //현재 위치 기반으로 뜨게함
+            else
+                showFirstInformation(findLatLng);  //검색한 곳이 뜨게함
+        });
+        button1.setOnLongClickListener(v -> {
+            checknum = -1;
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            selectedItem.add(itemsInKor[0]);
+            builder.setTitle("1번");
+            builder.setSingleChoiceItems(R.array.array_Kor,
+                    0, (dialog, which) -> {
+                        selectedItem.clear();
+                        selectedItem.add(itemsInKor[which]);
+                        checknum = which;         //문제점 ok를 누르지 않아도 placefirst에 저장이되어버림
+                    });
+            builder.setPositiveButton("OK", (dialog, pos) -> {
+                Toast toast = Toast.makeText(mContext.getApplicationContext(), "선택된 항목 : " + selectedItem.get(0), Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                //placefirst = itemsInKor[which];
+                toast.show();
+                if(checknum != -1)
+                    placefirst = checknum;
+                button1.setText(selectedItem.get(0));
+                SharedPreferences sharedPreferences= mContext.getSharedPreferences("test", MODE_PRIVATE);    // test 이름의 기본모드 설정
+                SharedPreferences.Editor editor= sharedPreferences.edit(); //sharedPreferences를 제어할 editor를 선언
+                editor.putString("inputText1",selectedItem.get(0));
+                editor.putInt("inputNum1",placefirst);
+                editor.apply();
+                Toast.makeText(mContext,"저장",Toast.LENGTH_SHORT).show();
+            });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+            return false;
         });
 
-        Button button2 = (Button)mContext.findViewById(R.id.btn2);
-        button2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "2번눌림");
-                showSecondInformation(currentPosition);
-            }
+        final Button button2 = (Button)mContext.findViewById(R.id.btn2);
+        if(inputText2.equals(""));        //초기 설정값
+        else
+            button2.setText(inputText2);
+        button2.setOnClickListener(v -> {
+            Log.d(TAG, "2번눌림");
+            if(!findCheck)
+                showSecondInformation(currentPosition);  //현재 위치 기반으로 뜨게함
+            else
+                showSecondInformation(findLatLng);  //검색한 곳이 뜨게함
+        });
+        button2.setOnLongClickListener(v -> {
+            checknum = -1;
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            selectedItem.add(itemsInKor[0]);
+            builder.setTitle("2번");
+            builder.setSingleChoiceItems(R.array.array_Kor,
+                    0, (dialog, which) -> {
+                        selectedItem.clear();
+                        selectedItem.add(itemsInKor[which]);
+                        checknum = which;
+                    });
+            builder.setPositiveButton("OK", (dialog, pos) -> {
+                Toast toast = Toast.makeText(mContext.getApplicationContext(), "선택된 항목 : " + selectedItem.get(0), Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                toast.show();
+                if(checknum != -1)
+                    placesecond = checknum;
+                button2.setText(selectedItem.get(0));
+                SharedPreferences sharedPreferences= mContext.getSharedPreferences("test", MODE_PRIVATE);    // test 이름의 기본모드 설정
+                SharedPreferences.Editor editor= sharedPreferences.edit(); //sharedPreferences를 제어할 editor를 선언
+                editor.putInt("inputNum2",placesecond);
+                editor.putString("inputText2",selectedItem.get(0));
+                editor.apply();
+                Toast.makeText(mContext,"저장",Toast.LENGTH_SHORT).show();
+            });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+            return false;
         });
 
         Button button3 = (Button)mContext.findViewById(R.id.btn3);
-        button3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "3번눌림");
-                showThirdInformation(currentPosition);
-            }
+        if(inputText3.equals(""));            //초기설정값
+        else
+            button3.setText(inputText3);
+        button3.setOnClickListener(v -> {
+            Log.d(TAG, "3번눌림");
+            if(!findCheck)
+                showThirdInformation(currentPosition);  //현재 위치 기반으로 뜨게함
+            else
+                showThirdInformation(findLatLng);  //검색한 곳이 뜨게함
+        });
+
+        button3.setOnLongClickListener(v -> {
+            checknum = -1;
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            selectedItem.add(itemsInKor[0]);
+            builder.setTitle("3번");
+            builder.setSingleChoiceItems(R.array.array_Kor,
+                    0, (dialog, which) -> {
+                        selectedItem.clear();
+                        selectedItem.add(itemsInKor[which]);
+                        checknum = which;
+                    });
+            builder.setPositiveButton("OK", (dialog, pos) -> {
+                Toast toast = Toast.makeText(mContext.getApplicationContext(), "선택된 항목 : " + selectedItem.get(0), Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                toast.show();
+                if(checknum != -1)      //버튼 안누르고 ok누르는 거 방지
+                    placethird = checknum;
+                button3.setText(selectedItem.get(0));
+                SharedPreferences sharedPreferences= mContext.getSharedPreferences("test", MODE_PRIVATE);    // test 이름의 기본모드 설정
+                SharedPreferences.Editor editor= sharedPreferences.edit(); //sharedPreferences를 제어할 editor를 선언
+                editor.putInt("inputNum3",placethird);
+                editor.putString("inputText3",selectedItem.get(0));
+                editor.apply();
+                Toast.makeText(mContext,"저장",Toast.LENGTH_SHORT).show();
+            });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+            return false;
         });
 
         Button button4 = (Button)mContext.findViewById(R.id.btn4);
-        button4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "4번눌림");
-                showFourthInformation(currentPosition);
-            }
+        if(inputText4.equals(""));            //초기설정값
+        else
+            button4.setText(inputText4);
+        button4.setOnClickListener(v -> {
+            Log.d(TAG, "4번눌림");
+            if(!findCheck)
+                showFourthInformation(currentPosition);  //현재 위치 기반으로 뜨게함
+            else
+                showFourthInformation(findLatLng);  //검색한 곳이 뜨게함
+        });
+
+        button4.setOnLongClickListener(v -> {
+            checknum = -1;
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            selectedItem.add(itemsInKor[0]);
+            builder.setTitle("4번");
+            builder.setSingleChoiceItems(R.array.array_Kor,
+                    0, (dialog, which) -> {
+                        selectedItem.clear();
+                        selectedItem.add(itemsInKor[which]);
+                        checknum = which;
+                    });
+            builder.setPositiveButton("OK", (dialog, pos) -> {
+                Toast toast = Toast.makeText(mContext.getApplicationContext(), "선택된 항목 : " + selectedItem.get(0), Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                toast.show();
+                if(checknum != -1)
+                    placefourth = checknum;
+                button4.setText(selectedItem.get(0));
+                SharedPreferences sharedPreferences= mContext.getSharedPreferences("test", MODE_PRIVATE);    // test 이름의 기본모드 설정
+                SharedPreferences.Editor editor= sharedPreferences.edit(); //sharedPreferences를 제어할 editor를 선언
+                editor.putString("inputText4",selectedItem.get(0));
+                editor.putInt("inputNum4",placefourth);
+                editor.apply();
+                Toast.makeText(mContext,"저장",Toast.LENGTH_SHORT).show();
+            });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+            return false;
         });
 
         Button button5 = (Button)mContext.findViewById(R.id.btn5);
-        button5.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "5번눌림");
-                showFifthInformation(currentPosition);
-            }
+        if(inputText5.equals(""));            //초기설정값
+        else
+            button5.setText(inputText5);
+
+        button5.setOnClickListener(v -> Log.d(TAG, "5번눌림"));
+
+        //onclick으로 바꾸기
+        button5.setOnLongClickListener(v -> {
+            checknum = -1;
+            AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+            selectedItem.add(distance[0]);      //왜하는지 모르겠음
+            builder.setTitle("5번");
+            builder.setSingleChoiceItems(R.array.distance,
+                    0, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            selectedItem.clear();
+                            selectedItem.add(distance[which]);
+                            checknum = which;     //문제가 ok를 눌렀을 때 변경이 되어야되는데 그게 아님
+                        }
+                    });
+            builder.setPositiveButton("OK", (dialog, pos) -> {
+                Toast toast = Toast.makeText(mContext.getApplicationContext(), "선택된 항목 : " + selectedItem.get(0), Toast.LENGTH_LONG);
+                toast.setGravity(Gravity.CENTER, 0, 0);
+                toast.show();
+                if(checknum != -1)
+                    placefifth = checknum;
+                if(placefifth == 0)
+                    range = 500;
+                else if(placefifth == 1)
+                    range = 1000;
+                else if(placefifth == 2)
+                    range = 1500;
+                else if(placefifth == 3)
+                    range = 2000;
+                button5.setText(selectedItem.get(0));
+                SharedPreferences sharedPreferences= mContext.getSharedPreferences("test", MODE_PRIVATE);    // test 이름의 기본모드 설정
+                SharedPreferences.Editor editor= sharedPreferences.edit(); //sharedPreferences를 제어할 editor를 선언
+                editor.putString("inputText5",selectedItem.get(0));
+                editor.putInt("inputNum5",placefifth);
+                editor.apply();
+            });
+            AlertDialog alertDialog = builder.create();
+            alertDialog.show();
+            return false;
         });
 
 
@@ -289,18 +520,23 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
 
         }
 
-
-
-        mMap.getUiSettings().setMyLocationButtonEnabled(true);
-        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
-            public void onMapClick(LatLng latLng) {
-
-                Log.d( TAG, "onMapClick :");
+            public void onInfoWindowClick(Marker marker) {
+                Intent intent = new Intent(Intent.ACTION_DIAL);
+                intent.setData(Uri.parse("tel:"+phone));//...문제점 함수만들기 마지막번호만 하는 것이 아닌
+                startActivity(intent);
             }
         });
+
+        mMap.getUiSettings().setMyLocationButtonEnabled(true);
+        mMap.setOnMyLocationButtonClickListener(() -> {
+            Log.d( TAG, "onMyLocationButtonClicked");
+            findCheck = false;
+            return false;
+        });
+        mMap.animateCamera(CameraUpdateFactory.zoomTo(15));
+        mMap.setOnMapClickListener(latLng -> Log.d( TAG, "onMapClick :"));
 
     }
 
@@ -495,11 +731,13 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
         markerOptions.draggable(true);
 
 
-        currentMarker = mMap.addMarker(markerOptions);
+     //마커x   currentMarker = mMap.addMarker(markerOptions);
 
         CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLng(currentLatLng);
-        //mMap.moveCamera(cameraUpdate);  //현재위치로 계속 이동
-
+        if(startcheck){
+            mMap.moveCamera(cameraUpdate);
+            startcheck=false;       //이 코드가 앱을 처음 시작했을 때 현재위치로 옮겨줌
+        }
     }
 
 
@@ -512,7 +750,7 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
         String markerSnippet = "위치 퍼미션과 GPS 활성 요부 확인하세요";
 
 
-        if (currentMarker != null) currentMarker.remove();
+        //if (currentMarker != null) currentMarker.remove();
 
         MarkerOptions markerOptions = new MarkerOptions();
         markerOptions.position(DEFAULT_LOCATION);
@@ -588,28 +826,20 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
 
                     // 사용자가 거부만 선택한 경우에는 앱을 다시 실행하여 허용을 선택하면 앱을 사용할 수 있습니다.
                     Snackbar.make(mLayout, "퍼미션이 거부되었습니다. 앱을 다시 실행하여 퍼미션을 허용해주세요. ",
-                            Snackbar.LENGTH_INDEFINITE).setAction("확인", new View.OnClickListener() {
+                            Snackbar.LENGTH_INDEFINITE).setAction("확인", view -> {
 
-                        @Override
-                        public void onClick(View view) {
-
-                            //   finish();
-                        }
-                    }).show();
+                                //   finish();
+                            }).show();
 
                 }else {
 
 
                     // "다시 묻지 않음"을 사용자가 체크하고 거부를 선택한 경우에는 설정(앱 정보)에서 퍼미션을 허용해야 앱을 사용할 수 있습니다.
                     Snackbar.make(mLayout, "퍼미션이 거부되었습니다. 설정(앱 정보)에서 퍼미션을 허용해야 합니다. ",
-                            Snackbar.LENGTH_INDEFINITE).setAction("확인", new View.OnClickListener() {
+                            Snackbar.LENGTH_INDEFINITE).setAction("확인", view -> {
 
-                        @Override
-                        public void onClick(View view) {
-
-                            //    finish();
-                        }
-                    }).show();
+                                //    finish();
+                            }).show();
                 }
             }
 
@@ -633,12 +863,7 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
                 startActivityForResult(callGPSSettingIntent, GPS_ENABLE_REQUEST_CODE);
             }
         });
-        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int id) {
-                dialog.cancel();
-            }
-        });
+        builder.setNegativeButton("취소", (dialog, id) -> dialog.cancel());
         builder.create().show();
     }
 
@@ -652,32 +877,36 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
             Place place = Autocomplete.getPlaceFromIntent(data);
             //Set address on EditText
             editText.setText(place.getAddress());
+            String str=editText.getText().toString();       //검색창에 아무것도 입력하지 않으면 edittext값이 없어서 튕기는거임
+            List<Address> addressList = null;
+            try {
+                // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
+                addressList = geocoder.getFromLocationName(
+                        str, // 주소
+                        1); // 최대 검색 결과 개수
+            }
+            catch (IOException e) {
+                e.printStackTrace();
+            }
+            Address address = addressList.get(0);
+            // 좌표(위도, 경도) 생성
+            LatLng latLng = new LatLng(address.getLatitude(),address.getLongitude());
+            //음식점,놀거리 찾기위한 위도 저장
+            findLatLng = latLng;
+            findCheck = true;       //검색한 위치 근처의 음식점만 보이도록
+            // 마커 생성
+            mMap.addMarker(new MarkerOptions().position(latLng).title(str));
+            // 해당 좌표로 화면 줌
+            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,15));
+
         }else if(resultCode == AutocompleteActivity.RESULT_ERROR){
             //when error
             //initialize status
             Status status = Autocomplete.getStatusFromIntent(data);
             //Display toast
+            Log.d(TAG, "입력안했을때냐");
             Toast.makeText(mContext.getApplicationContext(),status.getStatusMessage(),Toast.LENGTH_SHORT).show();
         }        // 좌표(위도, 경도) 생성
-
-        String str=editText.getText().toString();
-        List<Address> addressList = null;
-        try {
-            // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
-            addressList = geocoder.getFromLocationName(
-                    str, // 주소
-                    1); // 최대 검색 결과 개수
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        Address address = addressList.get(0);
-        // 좌표(위도, 경도) 생성
-        LatLng latLng = new LatLng(address.getLatitude(),address.getLongitude());
-        // 마커 생성
-        mMap.addMarker(new MarkerOptions().position(latLng).title(str));
-        // 해당 좌표로 화면 줌
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,15));
 
 
         switch (requestCode) {
@@ -716,32 +945,49 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
     @Override
     public void onPlacesSuccess(final List<noman.googleplaces.Place> places) {
         Log.d(TAG, "여기까지 오긴하냐");
-        getActivity().runOnUiThread(new Runnable() {
+        getActivity().runOnUiThread(() -> {
 
-            @Override
-            public void run() {
-                Log.d(TAG, "으아아아아ㅏ");
+            Log.d(TAG, "z");
 
-                for (noman.googleplaces.Place place : places) {
+            for (noman.googleplaces.Place place : places) {
 
-                    LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
+                LatLng latLng = new LatLng(place.getLatitude(), place.getLongitude());
 
-                    String markerSnippet = getCurrentAddress(latLng);
+                String markerSnippet = getCurrentAddress(latLng);
 
-                    MarkerOptions markerOptions = new MarkerOptions();
-                    markerOptions.position(latLng);
-                    markerOptions.title(place.getName());
-                    markerOptions.snippet(markerSnippet);
-                    Marker item = mMap.addMarker(markerOptions);
-                    previous_marker.add(item);
+                place_id = place.getPlaceId();
+                String str = "";
+                try{
+                    Log.d(TAG,"으어어");
+                    str = new Task().execute().get();
+                    Log.d(TAG,"dhodhodhdo");
+                    jsonObject1 = new JSONObject(str);
+                    String result = jsonObject1.getString("result");
+                    jsonObject2 = new JSONObject(result);
+                    phone = jsonObject2.getString("formatted_phone_number");
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (ExecutionException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
 
-                //중복마커 제거
-                HashSet<Marker> hashSet = new HashSet<Marker>();
-                hashSet.addAll(previous_marker);
-                previous_marker.clear();
-                previous_marker.addAll(hashSet);
+                Log.d(TAG,"\n"+place.getName()+"\n"+getCurrentAddress(latLng)+"\n"+phone);
+
+                MarkerOptions markerOptions = new MarkerOptions();
+                markerOptions.position(latLng);
+                markerOptions.title(place.getName());
+                markerOptions.snippet(phone);
+                Marker item = mMap.addMarker(markerOptions);
+                previous_marker.add(item);
             }
+
+            //중복마커 제거
+            HashSet<Marker> hashSet = new HashSet<Marker>();
+            hashSet.addAll(previous_marker);
+            previous_marker.clear();
+            previous_marker.addAll(hashSet);
         });
     }
 
@@ -753,19 +999,75 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
     private void showFirstInformation(LatLng location)
     {
         mMap.clear();//지도 클리어
-
+        Log.d(TAG, "1번실행"+placefirst);
         if (previous_marker != null)
             previous_marker.clear();//지역정보 마커 클리어
+        if(placefirst == 0){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.RESTAURANT) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "음식점", Toast.LENGTH_SHORT).show();
 
-        Log.d(TAG, "1번실행");
-        new NRPlaces.Builder()
-                .listener(mapfragment.this)
-                .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
-                .latlng(location.latitude, location.longitude)//현재 위치
-                .radius(500) //500 미터 내에서 검색
-                .type(PlaceType.RESTAURANT) //음식점
-                .build()
-                .execute();
+        } else if(placefirst == 1){
+            Log.d(TAG, "1번실행"+placefirst);
+
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.CAFE) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "카페", Toast.LENGTH_SHORT).show();
+        } else if(placefirst == 2){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.BAR) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "바", Toast.LENGTH_SHORT).show();
+        } else if(placefirst == 3){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.HOSPITAL) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "병원", Toast.LENGTH_SHORT).show();
+        } else if(placefirst == 4){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.BANK) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "은행", Toast.LENGTH_SHORT).show();
+        } else if(placefirst == 5){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.TAXI_STAND) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "택시정류장", Toast.LENGTH_SHORT).show();
+        }
+
+
     }
     private void showSecondInformation(LatLng location)
     {
@@ -775,14 +1077,70 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
             previous_marker.clear();//지역정보 마커 클리어
 
         Log.d(TAG, "2번실행");
-        new NRPlaces.Builder()
-                .listener(mapfragment.this)
-                .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
-                .latlng(location.latitude, location.longitude)//현재 위치
-                .radius(500) //500 미터 내에서 검색
-                .type(PlaceType.CAFE) //카페
-                .build()
-                .execute();
+        if(placesecond == 0){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.RESTAURANT) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "음식점", Toast.LENGTH_SHORT).show();
+        }
+        else if(placesecond == 1){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.CAFE) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "카페", Toast.LENGTH_SHORT).show();
+        }
+        else if(placesecond == 2){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.BAR) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "바", Toast.LENGTH_SHORT).show();
+        }
+        else if(placesecond == 3){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.HOSPITAL) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "병원", Toast.LENGTH_SHORT).show();
+        } else if(placesecond == 4){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.BANK) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "은행", Toast.LENGTH_SHORT).show();
+        } else if(placesecond == 5){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.TAXI_STAND) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "택시정류장", Toast.LENGTH_SHORT).show();
+        }
     }
     private void showThirdInformation(LatLng location)
     {
@@ -792,14 +1150,70 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
             previous_marker.clear();//지역정보 마커 클리어
 
         Log.d(TAG, "3번실행");
-        new NRPlaces.Builder()
-                .listener(mapfragment.this)
-                .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
-                .latlng(location.latitude, location.longitude)//현재 위치
-                .radius(500) //500 미터 내에서 검색
-                .type(PlaceType.BAR) //바
-                .build()
-                .execute();
+        if(placethird == 0){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.RESTAURANT) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "음식점", Toast.LENGTH_SHORT).show();
+        }
+        else if(placethird == 1){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.CAFE) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "카페", Toast.LENGTH_SHORT).show();
+        }
+        else if(placethird == 2){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.BAR) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "바", Toast.LENGTH_SHORT).show();
+        }
+        else if(placethird == 3){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.HOSPITAL) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "병원", Toast.LENGTH_SHORT).show();
+        } else if(placethird == 4){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.BANK) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "은행", Toast.LENGTH_SHORT).show();
+        } else if(placethird == 5){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.TAXI_STAND) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "택시정류장", Toast.LENGTH_SHORT).show();
+        }
     }
     private void showFourthInformation(LatLng location)
     {
@@ -809,15 +1223,73 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
             previous_marker.clear();//지역정보 마커 클리어
 
         Log.d(TAG, "4번실행");
-        new NRPlaces.Builder()
-                .listener(mapfragment.this)
-                .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
-                .latlng(location.latitude, location.longitude)//현재 위치
-                .radius(500) //500 미터 내에서 검색
-                .type(PlaceType.BUS_STATION) //버스
-                .build()
-                .execute();
+        if(placefourth == 0){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.RESTAURANT) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "음식점", Toast.LENGTH_SHORT).show();
+        }
+        else if(placefourth == 1){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.CAFE) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "카페", Toast.LENGTH_SHORT).show();
+        }
+        else if(placefourth == 2){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.BAR) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "바", Toast.LENGTH_SHORT).show();
+        }
+        else if(placefourth == 3){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.HOSPITAL) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "병원", Toast.LENGTH_SHORT).show();
+        } else if(placefourth == 4){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.BANK) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "은행", Toast.LENGTH_SHORT).show();
+        } else if(placefourth == 5){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(range) //500 미터 내에서 검색
+                    .type(PlaceType.TAXI_STAND) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "택시정류장", Toast.LENGTH_SHORT).show();
+        }
     }
+
+
     private void showFifthInformation(LatLng location)
     {
         mMap.clear();//지도 클리어
@@ -826,14 +1298,66 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
             previous_marker.clear();//지역정보 마커 클리어
 
         Log.d(TAG, "5번실행");
-        new NRPlaces.Builder()
-                .listener(mapfragment.this)
-                .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
-                .latlng(location.latitude, location.longitude)//현재 위치
-                .radius(500) //500 미터 내에서 검색
-                .type(PlaceType.SUBWAY_STATION) //지하철
-                .build()
-                .execute();
+        if(placefifth == 0){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(500) //500 미터 내에서 검색
+                    .type(PlaceType.RESTAURANT) //
+                    .build()
+                    .execute();
+        }
+        else if(placefifth == 1){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(500) //500 미터 내에서 검색
+                    .type(PlaceType.CAFE) //
+                    .build()
+                    .execute();
+        }
+        else if(placefifth == 2){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(500) //500 미터 내에서 검색
+                    .type(PlaceType.BAR) //
+                    .build()
+                    .execute();
+        }
+        else if(placefifth == 3){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(500) //500 미터 내에서 검색
+                    .type(PlaceType.HOSPITAL) //
+                    .build()
+                    .execute();
+        } else if(placefifth == 4){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(500) //500 미터 내에서 검색
+                    .type(PlaceType.BANK) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "은행", Toast.LENGTH_SHORT).show();
+        } else if(placefifth == 5){
+            new NRPlaces.Builder()
+                    .listener(mapfragment.this)
+                    .key("AIzaSyCiGa8w92IEGllhyyOHFLks6y_rweuObmg")
+                    .latlng(location.latitude, location.longitude)//현재 위치
+                    .radius(500) //500 미터 내에서 검색
+                    .type(PlaceType.TAXI_STAND) //
+                    .build()
+                    .execute();
+            Toast.makeText(mContext, "택시정류장", Toast.LENGTH_SHORT).show();
+        }
     }
     //여기까지 근처위치 찾기
 }

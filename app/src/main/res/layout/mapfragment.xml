@@ -21,10 +21,10 @@
         android:layout_width="310dp"
         android:layout_height="wrap_content"
         android:background="@android:drawable/editbox_background"
-        android:drawableLeft="@drawable/ic_location"
         android:drawablePadding="16dp"
         android:hint="@string/enter_address"
-        android:padding="12dp" />
+        android:padding="12dp"
+        android:drawableLeft="@drawable/ic_location" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -53,14 +53,14 @@
             android:id="@+id/btn3"
             />
         <Button
-            android:text="버정"
+            android:text="병원"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:id="@+id/btn4"
             />
         <Button
-            android:text="지하철"
+            android:text="500m"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"

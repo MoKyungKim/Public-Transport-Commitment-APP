@@ -5,6 +5,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
+
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient;
 import com.amazonaws.mobileconnectors.appsync.AppSyncSubscriptionCall;
 import com.apollographql.apollo.api.Response;
@@ -13,10 +17,6 @@ import com.example.cooperativeproject2.AWS.ClientFactory;
 import com.example.cooperativeproject2.Adapter.PagerAdapter;
 
 import javax.annotation.Nonnull;
-
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.ViewPager;
 
 //import com.amazonaws.amplify.generated.graphql.CreateTaskMutation;
 //import com.amazonaws.amplify.generated.graphql.ListTasksQuery;
@@ -53,8 +53,8 @@ public class MainActivity extends AppCompatActivity {
 */
         viewPager = findViewById(R.id.viewPager);
         Button btn_first = findViewById(R.id.btn_cal);
-        Button btn_second = findViewById(R.id.btn_find);
-        Button btn_third = findViewById(R.id.btn_map);
+        Button btn_second = findViewById(R.id.btn_map);
+        Button btn_third = findViewById(R.id.btn_find);
 
         PagerAdapter pagerAdapter = new PagerAdapter(getSupportFragmentManager());
 

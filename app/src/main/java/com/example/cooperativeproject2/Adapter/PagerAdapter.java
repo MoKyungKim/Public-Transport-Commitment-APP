@@ -22,9 +22,9 @@ public class PagerAdapter extends FragmentStatePagerAdapter {
             case 0:
                 return new calfragment();
             case 1:
-                return new findfragment();
-            case 2:
                 return new mapfragment();
+            case 2:
+                return new findfragment();
             default:
                 return null;
         }

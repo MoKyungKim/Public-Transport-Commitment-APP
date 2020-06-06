@@ -28,21 +28,21 @@
             android:text="Calendar"/>
 
         <Button
-            android:id="@+id/btn_find"
-            android:layout_width="0dip"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@color/colorAccent"
-            android:text="Find Road"
-            />
-
-        <Button
             android:id="@+id/btn_map"
             android:layout_width="0dip"
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@color/colorAccent"
             android:text="Map"
+            />
+
+        <Button
+            android:id="@+id/btn_find"
+            android:layout_width="0dip"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="@color/colorAccent"
+            android:text="Find Road"
             />
 
     </LinearLayout>

@@ -1,31 +1,39 @@
 package com.example.cooperativeproject2.fragments;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.example.cooperativeproject2.Adapter.SearchAdapter;
 import com.example.cooperativeproject2.Item;
 import com.example.cooperativeproject2.R;
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.MapsInitializer;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.odsay.odsayandroidsdk.API;
 import com.odsay.odsayandroidsdk.ODsayData;
 import com.odsay.odsayandroidsdk.ODsayService;
@@ -35,35 +43,28 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
-import androidx.annotation.IdRes;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import noman.googleplaces.PlacesException;
+import noman.googleplaces.PlacesListener;
+
+//import com.google.android.libraries.places.api.model.Place;
+
 
 //위치 받아오기
 //길찾기
 
 
-//class MapsActivity : AppCompatActivity(), OnMapReadyCallback {
 
-
-
-  //      override fun onCreate(savedInstanceState: Bundle?) {
-    //    super.onCreate(savedInstanceState)
-      //  setContentView(R.layout.activity_maps)
-        //// Obtain the SupportMapFragment and get notified when the map is ready to be used.
-       // val mapFragment = supportFragmentManager
-       // .findFragmentById(R.id.map) as SupportMapFragment
-       // mapFragment.getMapAsync(this)
-        //}
-
-
-public class findfragment extends Fragment implements OnMapReadyCallback {
+public class findfragment extends Fragment implements OnMapReadyCallback,
+        ActivityCompat.OnRequestPermissionsResultCallback, PlacesListener {
 
 
     private ArrayList<Item> items = new ArrayList<>();
@@ -79,9 +80,12 @@ public class findfragment extends Fragment implements OnMapReadyCallback {
     private GoogleMap fMap;
     private MapView mapView = null;
     private Geocoder geocoder;
-    private Button button;
-
-
+    private Button button1;
+    private Button button2;
+    private Button button3;
+    private static final String TAG = "googlemap_example";
+    private Marker currentMarker = null;
+    private List<Marker> previous_marker;
 
 
 
@@ -89,17 +93,14 @@ public class findfragment extends Fragment implements OnMapReadyCallback {
     private  View view;
     private Context context;
     private Spinner sp_api;
-    private RadioGroup rg_object_type;
-    private RadioButton rb_json, rb_map;
 
-    private Button bt_api_call;
-    private TextView tv_data;
+    private Button search;
 
+    private TextView findlabel;
     private String spinnerSelectedName;
 
     private ODsayService odsayService;
     private JSONObject jsonObject;
-    private Map mapObject;
 
     public static findfragment getINSTANCE(){
         if(INSTANCE == null)
@@ -115,23 +116,19 @@ public class findfragment extends Fragment implements OnMapReadyCallback {
 
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        view= inflater.inflate(R.layout.layout_find, container, false);
+        view = inflater.inflate(R.layout.layout_find, container, false);
 
-
-
-        mapView = view.findViewById(R.id.map);
-        button = view.findViewById(R.id.ZIP);
-        button = view.findViewById(R.id.ZIP2);
-        button = view.findViewById(R.id.star);
+        button1 = view.findViewById(R.id.ZIP);
+        button2 = view.findViewById(R.id.ZIP2);
+        button3 = view.findViewById(R.id.star);
 
         view = view.findViewById(R.id.layout_find);
 
-
         recyclerView = view.findViewById(R.id.recycler_find);
         startSearch = view.findViewById(R.id.start_search);
-        endSearch =view.findViewById(R.id.end_search);
+        endSearch = view.findViewById(R.id.end_search);
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(mLayoutManager);
@@ -141,18 +138,18 @@ public class findfragment extends Fragment implements OnMapReadyCallback {
         recyclerView.setLayoutManager(layoutManager);
 
         List<Recent> potionList = new ArrayList<Recent>();
-        for(int i=0;i<30;i++){
-            Recent rc = new Recent(i+"","");
+        for (int i = 0; i < 30; i++) {
+            Recent rc = new Recent(i + "", "");
             potionList.add(rc);
         }
 
-        for(int i=0;i<30;i++){
-            Recent rc = new Recent(i+""+i,"");
+        for (int i = 0; i < 30; i++) {
+            Recent rc = new Recent(i + "" + i, "");
             potionList.add(rc);
         }
 
-        for(int i=0;i<30;i++){
-            Recent rc = new Recent(i+""+i+""+i,"");
+        for (int i = 0; i < 30; i++) {
+            Recent rc = new Recent(i + "" + i + "" + i, "");
             potionList.add(rc);
         }
 
@@ -201,11 +198,78 @@ public class findfragment extends Fragment implements OnMapReadyCallback {
 
 
 
-
        // sp_api.setSelection(0);
-        initdata();
+        //initdata();
+        mapView.getMapAsync(this);
         return view;
     }
+
+    public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
+        //Fragment에서의 onCreateView를 마치고, Activity에서 onCreate()가 호출되고 나서 호출됨
+        //Activity와 Fragment의 뷰가 모두 생성된 상태로, view를 변경하는 작업 가능
+        super.onActivityCreated(savedInstanceState);
+        Log.d(TAG, "onActivityCreated");
+
+        //액티비티가 처음 생성될 때 실행되는 함수
+        MapsInitializer.initialize(context);
+        //Initialize places
+        Places.initialize(context.getApplicationContext(), "AIzaSyBGN9HuTUWakZjy19FTkGPw4KZML3sbJfc");
+
+        //Set EditText non focusable
+        startSearch.setFocusable(false);
+        startSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Initialize place field list
+                List<Place.Field> fieldList = Arrays.asList(Place.Field.ADDRESS,
+                        Place.Field.LAT_LNG, Place.Field.NAME);
+                //Create intent
+                Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.
+                        OVERLAY, fieldList).build(context);
+                //Start activity result
+                startActivityForResult(intent, 100);
+            }
+        });
+
+        endSearch.setFocusable(false);
+        endSearch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Initialize place field list
+                List<Place.Field> fieldList = Arrays.asList(Place.Field.ADDRESS,
+                        Place.Field.LAT_LNG, Place.Field.NAME);
+                //Create intent
+                Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.
+                        OVERLAY, fieldList).build(context);
+                //Start activity result
+                startActivityForResult(intent, 100);
+            }
+        });
+        previous_marker = new ArrayList<Marker>();
+    }
+
+    private void setCurrentLocation(Location location, String markerTitle, String markerSnippet) {
+
+
+        if (currentMarker != null) currentMarker.remove();
+
+
+        LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        MarkerOptions markerOptions = new MarkerOptions();
+        markerOptions.position(currentLatLng);
+        markerOptions.title(markerTitle);
+        markerOptions.snippet(markerSnippet);
+        markerOptions.draggable(true);
+
+
+        currentMarker = fMap.addMarker(markerOptions);
+
+        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLng(currentLatLng);
+        //mMap.moveCamera(cameraUpdate);  //현재위치로 계속 이동
+
+    }
+
 
     /**
      * Manipulates the map once available.
@@ -241,7 +305,7 @@ public class findfragment extends Fragment implements OnMapReadyCallback {
         ////////////////////
 
         // 버튼 이벤트
-        button.setOnClickListener(new Button.OnClickListener(){
+        search.setOnClickListener(new Button.OnClickListener(){
             @Override
             public void onClick(View v){
                 String str1=startSearch.getText().toString();
@@ -322,20 +386,10 @@ public class findfragment extends Fragment implements OnMapReadyCallback {
 
 //        bt_api_call.setOnClickListener(onClickListener);
         //sp_api.setOnItemSelectedListener(onItemSelectedListener);
-        rg_object_type.setOnCheckedChangeListener(onCheckedChangeListener);
     }
 
 
-    private RadioGroup.OnCheckedChangeListener onCheckedChangeListener = new RadioGroup.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(RadioGroup group, @IdRes int checkedId) {
-            if (rg_object_type.getCheckedRadioButtonId() == rb_json.getId()) {
-                tv_data.setText(jsonObject.toString());
-            } else if (rg_object_type.getCheckedRadioButtonId() == rb_map.getId()) {
-                tv_data.setText(mapObject.toString());
-            }
-        }
-    };
+
     private AdapterView.OnItemSelectedListener onItemSelectedListener = new AdapterView.OnItemSelectedListener() {
         @Override
         public void onItemSelected(AdapterView<?> parent, View view,
@@ -352,12 +406,8 @@ public class findfragment extends Fragment implements OnMapReadyCallback {
         @Override
         public void onSuccess(ODsayData oDsayData, API api) {
             jsonObject = oDsayData.getJson();
-            mapObject = oDsayData.getMap();
-            if (rg_object_type.getCheckedRadioButtonId() == rb_json.getId()) {
-                tv_data.setText(jsonObject.toString());
-            } else if (rg_object_type.getCheckedRadioButtonId() == rb_map.getId()) {
-                tv_data.setText(mapObject.toString());
-            }//API 호출 결과 데이터를 리턴합니다. Json, Map 형식의 데이터 서비스를 제공하고,
+            findlabel.setText(jsonObject.toString());
+            //API 호출 결과 데이터를 리턴합니다. Json, Map 형식의 데이터 서비스를 제공하고,
             //getJson, getMap 메서드를 통해 가져옵니다.
             // - odsayData : API 호출 결과 데이터를 리턴합니다. Json, Map 형식의 데이터 서비스를 제공하고,
             //   getJson, getMap 메서드를 통해 가져옵니다.
@@ -366,7 +416,7 @@ public class findfragment extends Fragment implements OnMapReadyCallback {
 
         @Override
         public void onError(int code, String errorMessage, API api) {
-            tv_data.setText("API : " + api.name() + "\n" + errorMessage);
+            findlabel.setText("API : " + api.name() + "\n" + errorMessage);
         }//code<-에러코드값, 호출한 api값종류와 에러 메세지 리턴
     };
 
@@ -446,4 +496,24 @@ public class findfragment extends Fragment implements OnMapReadyCallback {
         items.add(new Item("2020년 5월 18일", "초등학교 동창회"));
     }
 
+
+    @Override
+    public void onPlacesFailure(PlacesException e) {
+        
+    }
+
+    @Override
+    public void onPlacesStart() {
+
+    }
+
+    @Override
+    public void onPlacesSuccess(List<noman.googleplaces.Place> places) {
+
+    }
+
+    @Override
+    public void onPlacesFinished() {
+
+    }
 }

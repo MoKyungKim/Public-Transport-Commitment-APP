@@ -5,18 +5,21 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.ViewPager;
-
+import com.amazonaws.mobile.client.AWSMobileClient;
+import com.amazonaws.mobile.config.AWSConfiguration;
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient;
 import com.amazonaws.mobileconnectors.appsync.AppSyncSubscriptionCall;
+import com.amazonaws.mobileconnectors.appsync.sigv4.CognitoUserPoolsAuthProvider;
 import com.apollographql.apollo.api.Response;
 import com.apollographql.apollo.exception.ApolloException;
 import com.example.cooperativeproject2.AWS.ClientFactory;
 import com.example.cooperativeproject2.Adapter.PagerAdapter;
 
 import javax.annotation.Nonnull;
+
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
 
 //import com.amazonaws.amplify.generated.graphql.CreateTaskMutation;
 //import com.amazonaws.amplify.generated.graphql.ListTasksQuery;
@@ -35,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
       mAWSAppSyncClient = ClientFactory.appSyncClient();
 
-        /*mAWSAppSyncClient = AWSAppSyncClient.builder()
+        mAWSAppSyncClient = AWSAppSyncClient.builder()
                 .context(getApplicationContext())
                 .awsConfiguration(new AWSConfiguration(getApplicationContext()))
                 .cognitoUserPoolsAuthProvider(new CognitoUserPoolsAuthProvider() {
@@ -50,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 })
                 .build();
-*/
+
         viewPager = findViewById(R.id.viewPager);
         Button btn_first = findViewById(R.id.btn_cal);
         Button btn_second = findViewById(R.id.btn_map);

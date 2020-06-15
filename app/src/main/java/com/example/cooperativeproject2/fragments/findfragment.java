@@ -17,10 +17,13 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.cooperativeproject2.Adapter.SearchAdapter;
 import com.example.cooperativeproject2.Item;
 import com.example.cooperativeproject2.R;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -50,6 +53,7 @@ import java.util.Locale;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import noman.googleplaces.PlacesException;
@@ -79,6 +83,7 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
     //구글맵이용
     private GoogleMap fMap;
     private MapView mapView = null;
+    private Location location;
     private Geocoder geocoder;
     private Button button1;
     private Button button2;
@@ -86,12 +91,14 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
     private static final String TAG = "googlemap_example";
     private Marker currentMarker = null;
     private List<Marker> previous_marker;
+    private LatLng currentPosition;
+    private Location mCurrentLocatiion;
+    private FragmentActivity mContext;
 
 
 
     private static findfragment INSTANCE = null;
     private  View view;
-    private Context context;
     private Spinner sp_api;
 
     private Button search;
@@ -133,7 +140,7 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(mLayoutManager);
 
-        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(mContext);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
 
@@ -200,7 +207,7 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
 
        // sp_api.setSelection(0);
         //initdata();
-        mapView.getMapAsync(this);
+        //mapView.getMapAsync(this);
         return view;
     }
 
@@ -211,9 +218,9 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
         Log.d(TAG, "onActivityCreated");
 
         //액티비티가 처음 생성될 때 실행되는 함수
-        MapsInitializer.initialize(context);
+        MapsInitializer.initialize(mContext);
         //Initialize places
-        Places.initialize(context.getApplicationContext(), "AIzaSyBGN9HuTUWakZjy19FTkGPw4KZML3sbJfc");
+        Places.initialize(mContext.getApplicationContext(), "AIzaSyBGN9HuTUWakZjy19FTkGPw4KZML3sbJfc");
 
         //Set EditText non focusable
         startSearch.setFocusable(false);
@@ -225,7 +232,7 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
                         Place.Field.LAT_LNG, Place.Field.NAME);
                 //Create intent
                 Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.
-                        OVERLAY, fieldList).build(context);
+                        OVERLAY, fieldList).build(mContext);
                 //Start activity result
                 startActivityForResult(intent, 100);
             }
@@ -240,13 +247,81 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
                         Place.Field.LAT_LNG, Place.Field.NAME);
                 //Create intent
                 Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.
-                        OVERLAY, fieldList).build(context);
+                        OVERLAY, fieldList).build(mContext);
                 //Start activity result
                 startActivityForResult(intent, 100);
             }
         });
         previous_marker = new ArrayList<Marker>();
     }
+
+
+    LocationCallback locationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            super.onLocationResult(locationResult);
+
+            List<Location> locationList = locationResult.getLocations();
+
+            if (locationList.size() > 0) {
+                location = locationList.get(locationList.size() - 1);
+                //location = locationList.get(0);
+
+                currentPosition = new LatLng(location.getLatitude(), location.getLongitude());
+
+
+                String markerTitle = getCurrentAddress(currentPosition);
+                String markerSnippet = "위도:" + String.valueOf(location.getLatitude())
+                        + " 경도:" + String.valueOf(location.getLongitude());
+
+                Log.d(TAG, "onLocationResult : " + markerSnippet + markerTitle);
+
+
+                //현재 위치에 마커 생성하고 이동
+                setCurrentLocation(location, markerTitle, markerSnippet);
+
+                mCurrentLocatiion = location;
+            }
+
+
+        }
+
+    };
+
+    private String getCurrentAddress(LatLng latlng) {
+
+        //지오코더... GPS를 주소로 변환
+        geocoder = new Geocoder(mContext);
+
+        List<Address> addresses;
+
+        try {
+            addresses = geocoder.getFromLocation(
+                    latlng.latitude,
+                    latlng.longitude,
+                    1);
+            Log.d(TAG, "주소가 왜 미발견 : " + addresses );
+        } catch (IOException ioException) {
+            //네트워크 문제
+            Toast.makeText(mContext, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show();
+            return "지오코더 서비스 사용불가";
+        } catch (IllegalArgumentException illegalArgumentException) {
+            Toast.makeText(mContext, "잘못된 GPS 좌표", Toast.LENGTH_LONG).show();
+            return "잘못된 GPS 좌표";
+
+        }
+
+        if (addresses == null || addresses.size() == 0) {
+            Toast.makeText(mContext, "주소 미발견", Toast.LENGTH_LONG).show();
+            return "주소 미발견";
+
+        } else {
+            Address address = addresses.get(0);
+            return address.getAddressLine(0);
+        }
+
+    }
+
 
     private void setCurrentLocation(Location location, String markerTitle, String markerSnippet) {
 
@@ -320,6 +395,30 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
                 catch (IOException e) {
                     e.printStackTrace();
                 }
+
+                System.out.println(addressList.get(0).toString());
+                // 콤마를 기준으로 split
+                String []splitStr = addressList.get(0).toString().split(",");
+                String address = splitStr[0].substring(splitStr[0].indexOf("\"") + 1,splitStr[0].length() - 2); // 주소
+                System.out.println(address);
+
+                String latitude1 = splitStr[10].substring(splitStr[10].indexOf("=") + 1); // 위도
+                String longitude1 = splitStr[12].substring(splitStr[12].indexOf("=") + 1); // 경도
+                System.out.println(latitude1);
+                System.out.println(longitude1);
+
+                // 좌표(위도, 경도) 생성
+                LatLng point = new LatLng(Double.parseDouble(latitude1), Double.parseDouble(longitude1));
+                // 마커 생성
+                MarkerOptions mOptions1 = new MarkerOptions();
+                mOptions1.title("search result");
+                mOptions1.snippet(address);
+                mOptions1.position(point);
+                // 마커 추가
+                fMap.addMarker(mOptions1);
+                // 해당 좌표로 화면 줌
+                fMap.moveCamera(CameraUpdateFactory.newLatLngZoom(point,15));
+
                 try {
                     // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
                     addressList = geocoder.getFromLocationName(
@@ -329,20 +428,19 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
                 catch (IOException e) {
                     e.printStackTrace();
                 }
-
                 System.out.println(addressList.get(0).toString());
                 // 콤마를 기준으로 split
-                String []splitStr = addressList.get(0).toString().split(",");
-                String address = splitStr[0].substring(splitStr[0].indexOf("\"") + 1,splitStr[0].length() - 2); // 주소
-                System.out.println(address);
+                String []splitStr2 = addressList.get(0).toString().split(",");
+                String address2 = splitStr[0].substring(splitStr[0].indexOf("\"") + 1,splitStr[0].length() - 2); // 주소
+                System.out.println(address2);
 
-                String latitude = splitStr[10].substring(splitStr[10].indexOf("=") + 1); // 위도
-                String longitude = splitStr[12].substring(splitStr[12].indexOf("=") + 1); // 경도
-                System.out.println(latitude);
-                System.out.println(longitude);
+                String latitude2 = splitStr[10].substring(splitStr[10].indexOf("=") + 1); // 위도
+                String longitude2 = splitStr[12].substring(splitStr[12].indexOf("=") + 1); // 경도
+                System.out.println(latitude2);
+                System.out.println(longitude2);
 
                 // 좌표(위도, 경도) 생성
-                LatLng point = new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
+                LatLng point2 = new LatLng(Double.parseDouble(latitude2), Double.parseDouble(longitude2));
                 // 마커 생성
                 MarkerOptions mOptions2 = new MarkerOptions();
                 mOptions2.title("search result");
@@ -352,6 +450,7 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
                 fMap.addMarker(mOptions2);
                 // 해당 좌표로 화면 줌
                 fMap.moveCamera(CameraUpdateFactory.newLatLngZoom(point,15));
+
             }
         });
 
@@ -372,15 +471,15 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
    public void onAttach(Context context) {
 
        super.onAttach(context);
-        this.context= context;
+        this.mContext= (FragmentActivity) context;
     }//context 가져오려면 필요한 함수. 프래그먼트에서는 컨텍스트를 함부로 못가져와서 붙임
 
     private void init() {
 
 
-        context = this.getContext();//컨텍스트 변수
+        mContext = (FragmentActivity) this.getContext();//컨텍스트 변수
 
-        odsayService = ODsayService.init(context, getString(R.string.odsay_key));//odsayservice객체생성
+        odsayService = ODsayService.init(mContext, getString(R.string.odsay_key));//odsayservice객체생성
         odsayService.setReadTimeout(5000);//서버연결제한시간설정(단위는 밀리세컨드 현재 5초로 설정)
         odsayService.setConnectionTimeout(5000);//데이터획득제한시간설정(위와 동일)
 

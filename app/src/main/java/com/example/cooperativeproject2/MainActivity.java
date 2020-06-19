@@ -5,6 +5,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.viewpager.widget.ViewPager;
+
 import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobile.config.AWSConfiguration;
 import com.amazonaws.mobileconnectors.appsync.AWSAppSyncClient;
@@ -16,10 +20,6 @@ import com.example.cooperativeproject2.AWS.ClientFactory;
 import com.example.cooperativeproject2.Adapter.PagerAdapter;
 
 import javax.annotation.Nonnull;
-
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.viewpager.widget.ViewPager;
 
 //import com.amazonaws.amplify.generated.graphql.CreateTaskMutation;
 //import com.amazonaws.amplify.generated.graphql.ListTasksQuery;
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main3);
 
-      mAWSAppSyncClient = ClientFactory.appSyncClient();
+        mAWSAppSyncClient = ClientFactory.appSyncClient();
 
         mAWSAppSyncClient = AWSAppSyncClient.builder()
                 .context(getApplicationContext())

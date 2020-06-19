@@ -23,7 +23,17 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+
+import com.example.cooperativeproject2.MainActivity;
 import com.example.cooperativeproject2.R;
+import com.example.cooperativeproject2.blogActivity;
 import com.example.cooperativeproject2.models.Task;
 import com.example.cooperativeproject2.models.Task1;
 import com.google.android.gms.common.api.Status;
@@ -62,13 +72,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
 import noman.googleplaces.NRPlaces;
 import noman.googleplaces.PlaceType;
 import noman.googleplaces.PlacesException;
@@ -81,9 +84,14 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback,
         PlacesListener {
 
+    MainActivity mainActivity;
     private JSONObject jsonObject1;
     private JSONObject jsonObject2;
     private String phone;
+    Double late;
+    Double lnge;
+    String markerName;
+    int startendcheck = 0;
     public String place_id;
     public String addressName;
     public static mapfragment context;
@@ -526,10 +534,57 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
             @Override
             public void onInfoWindowClick(Marker marker) {
-                String tag = marker.getTag().toString();
-                Intent intent = new Intent(Intent.ACTION_DIAL);
-                intent.setData(Uri.parse(tag));//...문제점 함수만들기 마지막번호만 하는 것이 아닌
-                startActivity(intent);
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setTitle("선택");
+                builder.setItems(R.array.startend, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        LatLng latLng = marker.getPosition();
+                        late = latLng.latitude;
+                        lnge = latLng.longitude;
+                        markerName = marker.getTitle();
+                        if(which==0){       //출발지로 선택하면 값을 저장하고 find로 넘어가서 해당 위치에 값 입력
+                            Toast.makeText(mContext.getApplicationContext(),"출발지 >> "+"lat:"+late+"lng:"+lnge,Toast.LENGTH_LONG).show();
+                            startendcheck = 1;
+                           // findfragment.setPoint();
+                        }
+                        else if(which==1){  //도착지로 선택
+                            Toast.makeText(mContext.getApplicationContext(),"도착지 >> "+"lat:"+late+"lng:"+lnge,Toast.LENGTH_LONG).show();
+                            startendcheck = 2;
+                            //findfragment.setPoint();
+                        }
+                    }
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+            }
+
+        });
+
+        mMap.setOnInfoWindowLongClickListener(new GoogleMap.OnInfoWindowLongClickListener() {
+            @Override
+            public void onInfoWindowLongClick(final Marker marker) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                builder.setTitle("선택");
+                builder.setItems(R.array.markermenu, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        if(which==0){   //전화걸기
+                            String tag = marker.getTag().toString();
+                            Intent intent = new Intent(Intent.ACTION_DIAL);
+                            intent.setData(Uri.parse(tag));
+                            startActivity(intent);
+                        }
+                        else if(which==1){      //블로그
+                            String search = marker.getTitle();
+                            Intent intent = new Intent((MainActivity)getActivity(), blogActivity.class);
+                            intent.putExtra("keyword",search);
+                            startActivity(intent);
+                        }
+                    }
+                });
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
             }
         });
 

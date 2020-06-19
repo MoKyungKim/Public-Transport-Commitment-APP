@@ -17,10 +17,20 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cooperativeproject2.Adapter.SearchAdapter;
-import com.example.cooperativeproject2.Item;
 import com.example.cooperativeproject2.R;
+import com.example.cooperativeproject2.object;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -47,11 +57,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import androidx.annotation.Nullable;
-import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 import noman.googleplaces.PlacesException;
 import noman.googleplaces.PlacesListener;
 
@@ -66,12 +71,44 @@ import noman.googleplaces.PlacesListener;
 public class findfragment extends Fragment implements OnMapReadyCallback,
         ActivityCompat.OnRequestPermissionsResultCallback, PlacesListener {
 
+    /*private static Double lat;
+    private static Double lng;
+    private static int check;
+    private static String name;
+    *///마커에서 출발점이나 도착점을 골랐을 때그 마커의 위도, 경도 시작점or도착점인지 체크하는 것
+    // 그리고 장소의 이름이 여기에 저장됨
+    Double lat= ((mapfragment)mapfragment.context).late;
+    Double lng= ((mapfragment)mapfragment.context).lnge;
+    int check= ((mapfragment)mapfragment.context).startendcheck;   //0 선택안됨, 1 출발점, 2 도착점
+    String name= ((mapfragment)mapfragment.context).markerName;
+    Double StartLat;    //길찾기 시작점의 lat
+    Double StartLng;    //길찾기 시작점의 lng
+    Double EndLat;      //길찾기 도착점의 lat
+    Double EndLng;      //길찾기 도착점의 lng
 
-    private ArrayList<Item> items = new ArrayList<>();
-     // 데이터를 넣은 리스트변수
+
+    public static findfragment context;
+
+    /*
+    //예시 마커에서 출발점을 눌렀으면 해당 lat lng를 시작점의 위도경도에 대입하고
+    //settext를 이용해 이름을 띄워줌
+    if(check==1){           //check를 이용해서 도착점에 넣을지 시작점에 넣을지 판단
+        StartLat = lat;
+        StartLng = lng;
+        startSearch.setText(name);  //이름을 해당 text칸에 넣음
+    }
+    else if(check==2){
+        EndLat = lat;
+        EndLng = lng;
+        endSearch.setText(name);
+    }
+    */
+
+    private ArrayList<object> items = new ArrayList<>();
+    // 데이터를 넣은 리스트변수
     private RecyclerView recyclerView;          // 검색을 보여줄 리스트변수
-    private EditText startSearch;        // 출발 검색어를 입력할 Input 창
-    private EditText endSearch;        // 도착 검색어를 입력할 Input 창
+    EditText startSearch;        // 출발 검색어를 입력할 Input 창
+    EditText endSearch;        // 도착 검색어를 입력할 Input 창
     private SearchAdapter adapter;      // 리스트뷰에 연결할 아답터
     private LinearLayoutManager mLayoutManager;
 
@@ -79,6 +116,7 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
     //구글맵이용
     private GoogleMap fMap;
     private MapView mapView = null;
+    private Location location;
     private Geocoder geocoder;
     private Button button1;
     private Button button2;
@@ -86,18 +124,21 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
     private static final String TAG = "googlemap_example";
     private Marker currentMarker = null;
     private List<Marker> previous_marker;
+    private LatLng currentPosition;
+    private Location mCurrentLocatiion;
+    private FragmentActivity mContext;
 
 
 
     private static findfragment INSTANCE = null;
     private  View view;
-    private Context context;
     private Spinner sp_api;
 
     private Button search;
 
+
+
     private TextView findlabel;
-    private String spinnerSelectedName;
 
     private ODsayService odsayService;
     private JSONObject jsonObject;
@@ -111,15 +152,14 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        Log.d("checkkk","create"+name);
     }
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.d("checkkk","oncreateview"+name);
         super.onCreate(savedInstanceState);
         view = inflater.inflate(R.layout.layout_find, container, false);
-
         button1 = view.findViewById(R.id.ZIP);
         button2 = view.findViewById(R.id.ZIP2);
         button3 = view.findViewById(R.id.star);
@@ -129,32 +169,46 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
         recyclerView = view.findViewById(R.id.recycler_find);
         startSearch = view.findViewById(R.id.start_search);
         endSearch = view.findViewById(R.id.end_search);
+        search = view.findViewById(R.id.search);
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(mLayoutManager);
+
+
+        LinearLayoutManager mLayoutManager = new LinearLayoutManager(mContext);
+        mLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(mLayoutManager);
+
+        //initdata();
+
+
+        List<object> potionList = new ArrayList<object>();
+      /*  for (int i = 0; i < 30; i++) {
+            object rc = new object("i ");
+            potionList.add(rc);
+        }
+
+        for (int i = 0; i < 30; i++) {
+            object rc = new object("i ");
+            potionList.add(rc);
+        }
+
+        for (int i = 0; i < 30; i++) {
+            object rc = new object("i ");
+            potionList.add(rc);
+        }*/
+
+        Context context = view.getContext();
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_find);
+        recyclerView.setHasFixedSize(true);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
 
-        List<Recent> potionList = new ArrayList<Recent>();
-        for (int i = 0; i < 30; i++) {
-            Recent rc = new Recent(i + "", "");
-            potionList.add(rc);
-        }
-
-        for (int i = 0; i < 30; i++) {
-            Recent rc = new Recent(i + "" + i, "");
-            potionList.add(rc);
-        }
-
-        for (int i = 0; i < 30; i++) {
-            Recent rc = new Recent(i + "" + i + "" + i, "");
-            potionList.add(rc);
-        }
-
-        adapter = new SearchAdapter(this, potionList);
+        SearchAdapter adapter = new SearchAdapter(context, items);
         recyclerView.setAdapter(adapter);
+
 
         startSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -198,9 +252,9 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
 
 
 
-       // sp_api.setSelection(0);
+        // sp_api.setSelection(0);
         //initdata();
-        mapView.getMapAsync(this);
+        //mapView.getMapAsync(this);
         return view;
     }
 
@@ -211,9 +265,9 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
         Log.d(TAG, "onActivityCreated");
 
         //액티비티가 처음 생성될 때 실행되는 함수
-        MapsInitializer.initialize(context);
+        MapsInitializer.initialize(mContext);
         //Initialize places
-        Places.initialize(context.getApplicationContext(), "AIzaSyBGN9HuTUWakZjy19FTkGPw4KZML3sbJfc");
+        Places.initialize(mContext.getApplicationContext(), "AIzaSyBGN9HuTUWakZjy19FTkGPw4KZML3sbJfc");
 
         //Set EditText non focusable
         startSearch.setFocusable(false);
@@ -225,7 +279,7 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
                         Place.Field.LAT_LNG, Place.Field.NAME);
                 //Create intent
                 Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.
-                        OVERLAY, fieldList).build(context);
+                        OVERLAY, fieldList).build(mContext);
                 //Start activity result
                 startActivityForResult(intent, 100);
             }
@@ -240,13 +294,174 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
                         Place.Field.LAT_LNG, Place.Field.NAME);
                 //Create intent
                 Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.
-                        OVERLAY, fieldList).build(context);
+                        OVERLAY, fieldList).build(mContext);
                 //Start activity result
                 startActivityForResult(intent, 100);
             }
         });
         previous_marker = new ArrayList<Marker>();
+
+
+        // 버튼 이벤트
+        search.setOnClickListener(new Button.OnClickListener() {
+            //  private View.OnClickListener onClickListener = new View.OnClickListener() {
+            //    @Override
+            public void onClick(View v) {
+                if(startSearch.getText().toString()=="" || endSearch.getText().toString()=="")
+                    lat= ((mapfragment)mapfragment.context).late;
+                    lng= ((mapfragment)mapfragment.context).lnge;
+                    check= ((mapfragment)mapfragment.context).startendcheck;   //0 선택안됨, 1 출발점, 2 도착점
+                    name= ((mapfragment)mapfragment.context).markerName;
+                if(check==1) {
+                    startSearch.setText(name);
+                    StartLat = lat;
+                    StartLng = lng;
+                }
+                else if(check==2) {
+                    endSearch.setText(name);
+                    EndLat = lat;
+                    EndLng = lng;
+                }
+                Toast.makeText(mContext.getApplicationContext(),"이름:"+startSearch.getText()+" lat:"+lat+" lng:"+lng+" check:"+check,Toast.LENGTH_LONG).show();
+                //switch (spinnerSelectedName) {
+                //  case "버스 노선 조회":
+                //    odsayService.requestSearchBusLane("150", "1000", "no", "10", "1", onResultCallbackListener);
+                //  break;
+                //case "버스노선 상세정보 조회":
+                //  odsayService.requestBusLaneDetail("12018", onResultCallbackListener);
+                //break;
+                        /*case "버스정류장 세부정보 조회":
+                            odsayService.requestBusStationInfo("107475", onResultCallbackListener);
+                            break;
+                        case "열차•KTX 운행정보 검색":
+                            odsayService.requestTrainServiceTime("3300128", "3300108", onResultCallbackListener);
+                            break;
+                        case "고속버스 운행정보 검색":
+                            odsayService.requestExpressServiceTime("4000057", "4000030", onResultCallbackListener);
+                            break;
+                        case "시외버스 운행정보 검색":
+                            odsayService.requestIntercityServiceTime("4000022", "4000255", onResultCallbackListener);
+                            break;
+                        case "항공 운행정보 검색":
+                            odsayService.requestAirServiceTime("3500001", "3500003", "6", onResultCallbackListener);
+                            break;
+                        case "운수회사별 버스노선 조회":
+                            odsayService.requestSearchByCompany("792", "100", onResultCallbackListener);
+                            break;
+                        case "지하철역 세부 정보 조회":
+                            odsayService.requestSubwayStationInfo("130", onResultCallbackListener);
+                            break;
+                        case "지하철역 전체 시간표 조회":
+                            odsayService.requestSubwayTimeTable("130", "1", onResultCallbackListener);
+                            break;
+                        case "노선 그래픽 데이터 검색":
+                            odsayService.requestLoadLane("0:0@12018:1:-1:-1", onResultCallbackListener);
+                            break;
+                        case "대중교통 정류장 검색":
+                            items.add(new odsayService.requestSearchStation("11", "1000", "1:2", "10", "1", "127.0363583:37.5113295", onResultCallbackListener));
+                            break;
+                        case "반경내 대중교통 POI 검색":
+                            odsayService.requestPointSearch("126.933361407195", "37.3643392278118", "250", "1:2", onResultCallbackListener);
+                            break;
+                        case "지도 위 대중교통 POI 검색":
+                            odsayService.requestBoundarySearch("127.045478316811:37.68882830829:127.055063420699:37.6370465749586", "127.045478316811:37.68882830829:127.055063420699:37.6370465749586", "1:2", onResultCallbackListener);
+                            break;
+                        case "지하철 경로검색 조회(지하철 노선도)":
+                            odsayService.requestSubwayPath("1000", "201", "222", "1", onResultCallbackListener);
+                            break;*/
+                //case "대중교통 길찾기":
+                //odsayService.requestSearchPubTransPath(StartLat, StartLng, EndLat, EndLng, "0", "0", "0", onResultCallbackListener);
+                //  break;
+                        /*case "지하철역 환승 정보 조회":
+                            odsayService.requestSubwayTransitInfo("133", onResultCallbackListener);
+                            break;
+                        case "고속버스 터미널 조회":
+                            odsayService.requestExpressBusTerminals("1000", "서울", onResultCallbackListener);
+                            break;
+                        case "시외버스 터미널 조회":
+                            odsayService.requestIntercityBusTerminals("1000", "서울", onResultCallbackListener);
+                            break;
+                        case "도시코드 조회":
+                            odsayService.requestSearchCID("서울", onResultCallbackListener);
+                            break;
+                    }//odsay서비스객체들 파라미터를 통해 api호출하고 onResultCallbackListener를 통해 결과 반환
+                }*/
+            }
+
+            ;
+
+        } );
+
+
     }
+
+
+    LocationCallback locationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            super.onLocationResult(locationResult);
+
+            List<Location> locationList = locationResult.getLocations();
+
+            if (locationList.size() > 0) {
+                location = locationList.get(locationList.size() - 1);
+                //location = locationList.get(0);
+
+                currentPosition = new LatLng(location.getLatitude(), location.getLongitude());
+
+
+                String markerTitle = getCurrentAddress(currentPosition);
+                String markerSnippet = "위도:" + String.valueOf(location.getLatitude())
+                        + " 경도:" + String.valueOf(location.getLongitude());
+
+                Log.d(TAG, "onLocationResult : " + markerSnippet + markerTitle);
+
+
+                //현재 위치에 마커 생성하고 이동
+                setCurrentLocation(location, markerTitle, markerSnippet);
+
+                mCurrentLocatiion = location;
+            }
+
+
+        }
+
+    };
+
+    private String getCurrentAddress(LatLng latlng) {
+
+        //지오코더... GPS를 주소로 변환
+        geocoder = new Geocoder(mContext);
+
+        List<Address> addresses;
+
+        try {
+            addresses = geocoder.getFromLocation(
+                    latlng.latitude,
+                    latlng.longitude,
+                    1);
+            Log.d(TAG, "주소가 왜 미발견 : " + addresses );
+        } catch (IOException ioException) {
+            //네트워크 문제
+            Toast.makeText(mContext, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show();
+            return "지오코더 서비스 사용불가";
+        } catch (IllegalArgumentException illegalArgumentException) {
+            Toast.makeText(mContext, "잘못된 GPS 좌표", Toast.LENGTH_LONG).show();
+            return "잘못된 GPS 좌표";
+
+        }
+
+        if (addresses == null || addresses.size() == 0) {
+            Toast.makeText(mContext, "주소 미발견", Toast.LENGTH_LONG).show();
+            return "주소 미발견";
+
+        } else {
+            Address address = addresses.get(0);
+            return address.getAddressLine(0);
+        }
+
+    }
+
 
     private void setCurrentLocation(Location location, String markerTitle, String markerSnippet) {
 
@@ -285,7 +500,7 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
         fMap = googleMap;
 
         // 맵 터치 이벤트 구현 //
-        fMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
+        fMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng point) {
                 MarkerOptions mOptions = new MarkerOptions();
@@ -302,64 +517,90 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
             }
         });
 
-        ////////////////////
 
-        // 버튼 이벤트
-        search.setOnClickListener(new Button.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                String str1=startSearch.getText().toString();
-                String str2=endSearch.getText().toString();
-                List<Address> addressList = null;
-                try {
-                    // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
-                    addressList = geocoder.getFromLocationName(
-                            str1, // 주소
-                            10); // 최대 검색 결과 개수
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
-                    addressList = geocoder.getFromLocationName(
-                            str2, // 주소
-                            10); // 최대 검색 결과 개수
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
 
-                System.out.println(addressList.get(0).toString());
-                // 콤마를 기준으로 split
-                String []splitStr = addressList.get(0).toString().split(",");
-                String address = splitStr[0].substring(splitStr[0].indexOf("\"") + 1,splitStr[0].length() - 2); // 주소
-                System.out.println(address);
+        startSearch.setOnClickListener(new Button.OnClickListener() {
+                                           @Override
+                                           public void onClick(View v) {
+                                               String str1 = startSearch.getText().toString();
+                                               String str2 = endSearch.getText().toString();
+                                               List<Address> addressList = null;
+                                               try {
+                                                   // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
+                                                   addressList = geocoder.getFromLocationName(
+                                                           str1, // 주소
+                                                           10); // 최대 검색 결과 개수
+                                               } catch (IOException e) {
+                                                   e.printStackTrace();
+                                               }
 
-                String latitude = splitStr[10].substring(splitStr[10].indexOf("=") + 1); // 위도
-                String longitude = splitStr[12].substring(splitStr[12].indexOf("=") + 1); // 경도
-                System.out.println(latitude);
-                System.out.println(longitude);
+                                               System.out.println(addressList.get(0).toString());
+                                               // 콤마를 기준으로 split
+                                               String[] splitStr = addressList.get(0).toString().split(",");
+                                               String address = splitStr[0].substring(splitStr[0].indexOf("\"") + 1, splitStr[0].length() - 2); // 주소
+                                               System.out.println(address);
 
-                // 좌표(위도, 경도) 생성
-                LatLng point = new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
-                // 마커 생성
-                MarkerOptions mOptions2 = new MarkerOptions();
-                mOptions2.title("search result");
-                mOptions2.snippet(address);
-                mOptions2.position(point);
-                // 마커 추가
-                fMap.addMarker(mOptions2);
-                // 해당 좌표로 화면 줌
-                fMap.moveCamera(CameraUpdateFactory.newLatLngZoom(point,15));
-            }
-        });
+                                               String latitude1 = splitStr[10].substring(splitStr[10].indexOf("=") + 1); // 위도
+                                               String longitude1 = splitStr[12].substring(splitStr[12].indexOf("=") + 1); // 경도
+                                               System.out.println(latitude1);
+                                               System.out.println(longitude1);
+
+                                               // 좌표(위도, 경도) 생성
+                                               LatLng point = new LatLng(Double.parseDouble(latitude1), Double.parseDouble(longitude1));
+                                               // 마커 생성
+                                               MarkerOptions mOptions1 = new MarkerOptions();
+                                               mOptions1.title("search result");
+                                               mOptions1.snippet(address);
+                                               mOptions1.position(point);
+                                               // 마커 추가
+                                               fMap.addMarker(mOptions1);
+                                               // 해당 좌표로 화면 줌
+                                               fMap.moveCamera(CameraUpdateFactory.newLatLngZoom(point, 15));
+
+                                               try {
+                                                   // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
+                                                   addressList = geocoder.getFromLocationName(
+                                                           str2, // 주소
+                                                           10); // 최대 검색 결과 개수
+                                               } catch (IOException e) {
+                                                   e.printStackTrace();
+                                               }
+                                               System.out.println(addressList.get(0).toString());
+                                               // 콤마를 기준으로 split
+                                               String[] splitStr2 = addressList.get(0).toString().split(",");
+                                               String address2 = splitStr[0].substring(splitStr[0].indexOf("\"") + 1, splitStr[0].length() - 2); // 주소
+                                               System.out.println(address2);
+
+                                               String latitude2 = splitStr[10].substring(splitStr[10].indexOf("=") + 1); // 위도
+                                               String longitude2 = splitStr[12].substring(splitStr[12].indexOf("=") + 1); // 경도
+                                               System.out.println(latitude2);
+                                               System.out.println(longitude2);
+
+                                               // 좌표(위도, 경도) 생성
+                                               LatLng point2 = new LatLng(Double.parseDouble(latitude2), Double.parseDouble(longitude2));
+                                               // 마커 생성
+                                               MarkerOptions mOptions2 = new MarkerOptions();
+                                               mOptions2.title("search result");
+                                               mOptions2.snippet(address);
+                                               mOptions2.position(point);
+                                               // 마커 추가
+                                               fMap.addMarker(mOptions2);
+                                               // 해당 좌표로 화면 줌
+                                               fMap.moveCamera(CameraUpdateFactory.newLatLngZoom(point, 15));
+
+                                           }
+
+                                           ;
+
+                                       }
+
+        );
 
 
         ////////////////////
 
         // Add a marker in Sydney and move the camera
-      //  LatLng sydney = new LatLng(-34, 151);
+        //  LatLng sydney = new LatLng(-34, 151);
         //fMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         //fMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
     }
@@ -367,20 +608,80 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
 
 
 
+    ////////////////////
 
-   @Override
-   public void onAttach(Context context) {
 
-       super.onAttach(context);
-        this.context= context;
+
+
+           /* endSearch.setOnClickListener(new Button.OnClickListener() {
+
+                {
+                    @Override
+                    public void onClick (View v){
+                    String str2 = endSearch.getText().toString();
+                    List<Address> addressList = null;
+
+                    try {
+                        // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
+                        addressList = geocoder.getFromLocationName(
+                                str2, // 주소
+                                10); // 최대 검색 결과 개수
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println(addressList.get(0).toString());
+                    // 콤마를 기준으로 split
+                    String[] splitStr2 = addressList.get(0).toString().split(",");
+                    String address2 = splitStr2[0].substring(splitStr2[0].indexOf("\"") + 1, splitStr2[0].length() - 2); // 주소
+                    System.out.println(address2);
+
+                    String latitude2 = splitStr2[10].substring(splitStr2[10].indexOf("=") + 1); // 위도
+                    String longitude2 = splitStr2[12].substring(splitStr2[12].indexOf("=") + 1); // 경도
+                    System.out.println(latitude2);
+                    System.out.println(longitude2);
+
+                    // 좌표(위도, 경도) 생성
+                    LatLng point2 = new LatLng(Double.parseDouble(latitude2), Double.parseDouble(longitude2));
+                    // 마커 생성
+                    MarkerOptions mOptions2 = new MarkerOptions();
+                    mOptions2.title("search result");
+                    mOptions2.snippet(address);
+                    mOptions2.position(point);
+                    // 마커 추가
+                    fMap.addMarker(mOptions2);
+                    // 해당 좌표로 화면 줌
+                    fMap.moveCamera(CameraUpdateFactory.newLatLngZoom(point, 15));
+
+                }
+
+
+                    ////////////////////
+
+                    // Add a marker in Sydney and move the camera
+                    //  LatLng sydney = new LatLng(-34, 151);
+                    //fMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+                    //fMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+                }
+
+            });*/
+
+
+
+
+    @Override
+    public void onAttach(Context context) {
+        Log.d("checkkk","attach"+name);
+        super.onAttach(context);
+        this.mContext= (FragmentActivity) context;
     }//context 가져오려면 필요한 함수. 프래그먼트에서는 컨텍스트를 함부로 못가져와서 붙임
 
     private void init() {
 
 
-        context = this.getContext();//컨텍스트 변수
+        mContext = (FragmentActivity) this.getContext();//컨텍스트 변수
 
-        odsayService = ODsayService.init(context, getString(R.string.odsay_key));//odsayservice객체생성
+        odsayService = ODsayService.init(mContext, getString(R.string.odsay_key));//odsayservice객체생성
         odsayService.setReadTimeout(5000);//서버연결제한시간설정(단위는 밀리세컨드 현재 5초로 설정)
         odsayService.setConnectionTimeout(5000);//데이터획득제한시간설정(위와 동일)
 
@@ -394,7 +695,7 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
         @Override
         public void onItemSelected(AdapterView<?> parent, View view,
                                    int position, long id) {
-            spinnerSelectedName = (String) parent.getItemAtPosition(position);
+            //spinnerSelectedName = (String) parent.getItemAtPosition(position);
         }
 
         @Override
@@ -406,7 +707,8 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
         @Override
         public void onSuccess(ODsayData oDsayData, API api) {
             jsonObject = oDsayData.getJson();
-            findlabel.setText(jsonObject.toString());
+            initdata();
+            items.add(new object(jsonObject.toString()));
             //API 호출 결과 데이터를 리턴합니다. Json, Map 형식의 데이터 서비스를 제공하고,
             //getJson, getMap 메서드를 통해 가져옵니다.
             // - odsayData : API 호출 결과 데이터를 리턴합니다. Json, Map 형식의 데이터 서비스를 제공하고,
@@ -420,86 +722,18 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
         }//code<-에러코드값, 호출한 api값종류와 에러 메세지 리턴
     };
 
-    private View.OnClickListener onClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            switch (spinnerSelectedName) {
-                case "버스 노선 조회":
-                    odsayService.requestSearchBusLane("150", "1000", "no", "10", "1", onResultCallbackListener);
-                    break;
-                case "버스노선 상세정보 조회":
-                    odsayService.requestBusLaneDetail("12018", onResultCallbackListener);
-                    break;
-                case "버스정류장 세부정보 조회":
-                    odsayService.requestBusStationInfo("107475", onResultCallbackListener);
-                    break;
-                case "열차•KTX 운행정보 검색":
-                    odsayService.requestTrainServiceTime("3300128", "3300108", onResultCallbackListener);
-                    break;
-                case "고속버스 운행정보 검색":
-                    odsayService.requestExpressServiceTime("4000057", "4000030", onResultCallbackListener);
-                    break;
-                case "시외버스 운행정보 검색":
-                    odsayService.requestIntercityServiceTime("4000022", "4000255", onResultCallbackListener);
-                    break;
-                case "항공 운행정보 검색":
-                    odsayService.requestAirServiceTime("3500001", "3500003", "6", onResultCallbackListener);
-                    break;
-                case "운수회사별 버스노선 조회":
-                    odsayService.requestSearchByCompany("792", "100", onResultCallbackListener);
-                    break;
-                case "지하철역 세부 정보 조회":
-                    odsayService.requestSubwayStationInfo("130", onResultCallbackListener);
-                    break;
-                case "지하철역 전체 시간표 조회":
-                    odsayService.requestSubwayTimeTable("130", "1", onResultCallbackListener);
-                    break;
-                case "노선 그래픽 데이터 검색":
-                    odsayService.requestLoadLane("0:0@12018:1:-1:-1", onResultCallbackListener);
-                    break;
-                case "대중교통 정류장 검색":
-                    odsayService.requestSearchStation("11", "1000", "1:2", "10", "1", "127.0363583:37.5113295", onResultCallbackListener);
-                    break;
-                case "반경내 대중교통 POI 검색":
-                    odsayService.requestPointSearch("126.933361407195", "37.3643392278118", "250", "1:2", onResultCallbackListener);
-                    break;
-                case "지도 위 대중교통 POI 검색":
-                    odsayService.requestBoundarySearch("127.045478316811:37.68882830829:127.055063420699:37.6370465749586", "127.045478316811:37.68882830829:127.055063420699:37.6370465749586", "1:2", onResultCallbackListener);
-                    break;
-                case "지하철 경로검색 조회(지하철 노선도)":
-                    odsayService.requestSubwayPath("1000", "201", "222", "1", onResultCallbackListener);
-                    break;
-                case "대중교통 길찾기":
-                    odsayService.requestSearchPubTransPath("126.926493082645", "37.6134436427887", "127.126936754911", "37.5004198786564", "0", "0", "0", onResultCallbackListener);
-                    break;
-                case "지하철역 환승 정보 조회":
-                    odsayService.requestSubwayTransitInfo("133", onResultCallbackListener);
-                    break;
-                case "고속버스 터미널 조회":
-                    odsayService.requestExpressBusTerminals("1000", "서울", onResultCallbackListener);
-                    break;
-                case "시외버스 터미널 조회":
-                    odsayService.requestIntercityBusTerminals("1000", "서울", onResultCallbackListener);
-                    break;
-                case "도시코드 조회":
-                    odsayService.requestSearchCID("서울", onResultCallbackListener);
-                    break;
-            }//odsay서비스객체들 파라미터를 통해 api호출하고 onResultCallbackListener를 통해 결과 반환
-        }
-    };
+
 
     private void initdata() {
         //초기화
         items.clear();
-        items.add(new Item("2020년 5월 15일", "민주랑 약속 "));
-        items.add(new Item("2020년 5월 17일", "가족모임 "));
-        items.add(new Item("2020년 5월 18일", "초등학교 동창회"));
+        items.add(new object("손수연 바보 "));
     }
 
 
     @Override
     public void onPlacesFailure(PlacesException e) {
-        
+
     }
 
     @Override
@@ -516,4 +750,63 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
     public void onPlacesFinished() {
 
     }
+
+    @Override
+    public void onStart(){
+        super.onStart();
+        Log.d("checkkk","start"+name);
+    }
+
+    @Override
+    public void onPause(){
+        super.onPause();
+        Log.d("checkkk","pause");
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        Log.d("checkkk","resume"+name);
+    }
+
+    @Override
+    public void onStop(){
+        super.onStop();
+        Log.d("checkkk","stop");
+    }
+
+    @Override
+    public void onDestroy(){
+        super.onDestroy();
+        Log.d("checkkk","destroy");
+    }
+    @Override
+    public void onDestroyView(){
+        super.onDestroyView();
+        Log.d("checkkk","destroyview");
+    }
+
+    @Override
+    public void onDetach(){
+        super.onDetach();
+        Log.d("checkkk","detach");
+    }
+
+   /* static void setPoint() {
+        lat = ((mapfragment)mapfragment.context).late;
+        lng = ((mapfragment)mapfragment.context).lnge;
+        check = ((mapfragment)mapfragment.context).startendcheck;   //0 선택안됨, 1 출발점, 2 도착점
+        name = ((mapfragment)mapfragment.context).markerName;
+    }
+*/
+    public void setFindText(){
+        if(check==1) {
+            startSearch.setText(name);
+        }
+        else if(check==2){
+            endSearch.setText(name);
+        }
+    }
 }
+
+

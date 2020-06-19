@@ -3,7 +3,7 @@ package com.example.cooperativeproject2;
 public class Item {
 
     String name;
-//photo
+    //photo
     String summary;
 
     public Item(String name,  String summary) {

@@ -14,6 +14,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.cooperativeproject2.Adapter.CalendarAdapter;
 import com.example.cooperativeproject2.Adapter.RecyclerViewAdapter;
 import com.example.cooperativeproject2.AddTaskActivity;
@@ -24,12 +30,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
 //import com.example.CooperativeProject5.R;
 //import com.example.grid.CalendarAdapter;
@@ -136,7 +136,7 @@ public class calfragment extends Fragment implements OnClickListener, AdapterVie
             }
         });
 
-       mGvCalendar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mGvCalendar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Toast.makeText(context,"모니hi/민주왔다감", Toast.LENGTH_SHORT).show();
@@ -287,7 +287,7 @@ public class calfragment extends Fragment implements OnClickListener, AdapterVie
     {
         mCalendarAdapter = new CalendarAdapter(this, R.layout.day, mDayList);
         mGvCalendar.setAdapter(mCalendarAdapter);
-}
+    }
 
     //6.
     private void initDataset() {

@@ -4,14 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.amazonaws.mobile.client.AWSMobileClient;
 import com.amazonaws.mobile.client.Callback;
 import com.amazonaws.mobile.client.SignInUIOptions;
 import com.amazonaws.mobile.client.UserStateDetails;
 import com.example.cooperativeproject2.MainActivity;
 import com.example.cooperativeproject2.R;
-
-import androidx.appcompat.app.AppCompatActivity;
 
 public class AuthenticationActivity extends AppCompatActivity {
 

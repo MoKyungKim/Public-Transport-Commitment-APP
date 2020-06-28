@@ -23,16 +23,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentActivity;
-
 import com.example.cooperativeproject2.R;
 import com.example.cooperativeproject2.models.Task;
+import com.example.cooperativeproject2.models.Task1;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -57,16 +50,25 @@ import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.google.android.material.snackbar.Snackbar;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
 import noman.googleplaces.NRPlaces;
 import noman.googleplaces.PlaceType;
 import noman.googleplaces.PlacesException;
@@ -83,6 +85,7 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
     private JSONObject jsonObject2;
     private String phone;
     public String place_id;
+    public String addressName;
     public static mapfragment context;
     private FragmentActivity mContext;
     private Boolean startcheck = true;
@@ -889,14 +892,45 @@ public class mapfragment extends Fragment implements OnMapReadyCallback,
             catch (IOException e) {
                 e.printStackTrace();
             }
+            addressName = place.getName();
+            String str1 = "";
+            try {
+                Log.d(TAG, "어디가");
+                str1 = new Task1().execute().get();
+                Log.d(TAG, str1 + "왜");
+                JSONArray jsonArray = new JSONObject(str1).getJSONArray("results");
+                for (int i = 0; i < jsonArray.length(); i++) {
+                    HashMap hashMap = new HashMap<>();
+                    JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+                    place_id = jsonObject.optString("place_id");
+                }
+            } catch (InterruptedException | ExecutionException | JSONException e) {
+                e.printStackTrace();
+            }
+            try{
+                Log.d(TAG, "어디가");
+                str = new Task().execute().get();
+                Log.d(TAG,  str+ "왜");
+                jsonObject1 = new JSONObject(str);
+                String result = jsonObject1.getString("result");
+                jsonObject2 = new JSONObject(result);
+                phone = jsonObject2.getString("formatted_phone_number");
+            } catch (InterruptedException | ExecutionException | JSONException e) {
+                e.printStackTrace();
+            }
+
+
             Address address = addressList.get(0);
             // 좌표(위도, 경도) 생성
             LatLng latLng = new LatLng(address.getLatitude(),address.getLongitude());
             //음식점,놀거리 찾기위한 위도 저장
             findLatLng = latLng;
             findCheck = true;       //검색한 위치 근처의 음식점만 보이도록
+
             // 마커 생성
-            mMap.addMarker(new MarkerOptions().position(latLng).title(str));
+            previous_marker.clear();
+            mMap.addMarker(new MarkerOptions().position(latLng).title(addressName).snippet(phone)).setTag("tel:"+phone);        //주소가 아니라 이름이랑 번호가 나오도록 parsing해야함
             // 해당 좌표로 화면 줌
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng,15));
 

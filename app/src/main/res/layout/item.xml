@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="150dp">
+    android:layout_height="150dp"
+    android:background="@color/colorWhite"
+    android:orientation="vertical"
+    android:visibility="visible">
 
-    <!--ListView의 각 셀에 데이터가 들어갈 텍스트 라벨-->
+
     <TextView
-        android:id="@+id/findlabel"
+
+        android:id="@+id/minju"
         android:layout_width="match_parent"
         android:layout_height="150dp"
-        android:background="@color/colorWhite"
-        android:gravity="left"
+        android:background="#ffffff"
+        android:gravity="start"
         android:textColor="@color/colorPrimaryDark"
-        android:textIsSelectable="false"
         android:textSize="20dp"
         android:textStyle="bold"
+        android:visibility="visible"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="1.0" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

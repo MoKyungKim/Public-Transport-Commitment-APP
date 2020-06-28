@@ -16,18 +16,9 @@ import com.example.cooperativeproject2.fragments.calfragment;
 
 import java.util.ArrayList;
 
-//import com.example.cooperativeproject2.CalendarAdapter;
-
-//import com.example.cooperativeproject2.CalendarAdapter;
 
 public class CalendarAdapter extends BaseAdapter {
 
-    /**
-     * BaseAdapter를 상속받아 구현한 CalendarAdapter
-     *
-     * @author croute
-     * @since 2011.03.08
-     */
 
     private ArrayList<DayInfo> mDayList;
     private Context mContext;
@@ -127,6 +118,7 @@ public class CalendarAdapter extends BaseAdapter {
         if(day != null)
         {
             dayViewHolder.tvDay.setText(day.getDay());
+
 
             if(day.isInMonth())
             {

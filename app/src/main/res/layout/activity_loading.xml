@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:text="Don't running!"
-        android:textColor="#FFC107"
+        android:textColor="@color/colorLightRed"
         android:textSize="25dp"
         android:textStyle="bold"
         android:layout_marginTop="15dp"/>

@@ -10,4 +10,18 @@
     <color name="colorTransParent">#0003A9F4</color>
     <color name="colorPrimaryDark">#322E2E</color>
     <color name="colorAccent">#FFD53B</color>
+
+    <color name="today">#E85055</color>
+    <color name="grey">#c7c7c7</color>
+    <color name="grey2">#69C7C7C7</color>
+    <color name="colorLightRed">#C8FF3C3C</color>
+    <color name="summer">#FBFF6600</color>
+    <color name="autumn">#5AEC6D71</color>
+    <color name="winter">#5AA1C1DA</color>
+    <color name="spring">#448da64b</color>
+    <color name="today2">#F0F46166</color>
+
+
 </resources>
+
+

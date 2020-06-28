@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.amazonaws.appsync'
 
 android {
     compileSdkVersion 29

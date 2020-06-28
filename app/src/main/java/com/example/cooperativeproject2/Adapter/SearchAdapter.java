@@ -1,14 +1,13 @@
 package com.example.cooperativeproject2.Adapter;
 
-
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.example.cooperativeproject2.R;
-import com.example.cooperativeproject2.fragments.Recent;
-import com.example.cooperativeproject2.fragments.findfragment;
+import com.example.cooperativeproject2.object;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,32 +19,34 @@ import androidx.recyclerview.widget.RecyclerView;
  * Created by Administrator on 2017-08-07.
  */
 
+
 public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder> {
 
-    private findfragment mCtx;
+    private Context mCtx;
 
-    private List<Recent> items= null;
-    private ArrayList<Recent> arrayList;
+    private List<object> items= null;
+    private ArrayList<object> arrayList;
 
-    public SearchAdapter(findfragment context, List<Recent> items) {
+    public SearchAdapter(Context context, List<object> items) {
         this.mCtx=context;
         this.items=items;
-        arrayList = new ArrayList<Recent>();
+        arrayList = new ArrayList<object>();
         arrayList.addAll(items);
     }
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v= LayoutInflater.from(parent.getContext()).inflate(R.layout.row_listview,null);
-        return new ViewHolder(v);
+        ViewHolder viewHolder = new ViewHolder(v);
+        return viewHolder;
     }
 
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        final Recent item=items.get(position);
+        final object item=items.get(position);
 
-        holder.tv_address.setText(item.getAddress());
+        holder.tv_address.setText(item.getName());
     }
 
     @Override
@@ -59,10 +60,10 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
         if (charText.length() == 0) {
             items.addAll(arrayList);
         } else {
-            for (Recent recent : arrayList) {
-                String name = recent.getAddress();
+            for (object object : arrayList) {
+                String name = object.getName();
                 if (name.toLowerCase().contains(charText)) {
-                    items.add(recent);
+                    items.add(object);
                 }
             }
         }
@@ -78,8 +79,6 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
             tv_address= (TextView) itemView.findViewById(R.id.findlabel);
 
         }
-
-
     }
 
 }

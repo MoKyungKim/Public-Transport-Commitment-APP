@@ -14,6 +14,12 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
 import com.example.cooperativeproject2.Adapter.CalendarAdapter;
 import com.example.cooperativeproject2.Adapter.RecyclerViewAdapter;
 import com.example.cooperativeproject2.AddTaskActivity;
@@ -22,20 +28,10 @@ import com.example.cooperativeproject2.Item;
 import com.example.cooperativeproject2.R;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import org.w3c.dom.Text;
+
 import java.util.ArrayList;
 import java.util.Calendar;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
-//import com.example.CooperativeProject5.R;
-//import com.example.grid.CalendarAdapter;
-//import com.example.grid.DayInfo;
-//import com.example.cooperativeproject2.Adapter.Adapter;
-//import com.example.cooperativeproject2.SingModel;
 
 
 public class calfragment extends Fragment implements OnClickListener, AdapterView.OnItemClickListener {
@@ -45,6 +41,7 @@ public class calfragment extends Fragment implements OnClickListener, AdapterVie
      * 연/월 텍스트뷰
      */
     private TextView tvDate;
+    private TextView AddDate;       //20.06.18 일정날짜
     /**
      * 그리드뷰 어댑터
      */
@@ -77,6 +74,7 @@ public class calfragment extends Fragment implements OnClickListener, AdapterVie
 
     private TextView mTvCalendarTitle;
     private GridView mGvCalendar;
+    private TextView text_date;
 
     private ArrayList<DayInfo> mDayList;
     private CalendarAdapter mCalendarAdapter;
@@ -88,6 +86,7 @@ public class calfragment extends Fragment implements OnClickListener, AdapterVie
     //6.
     private ArrayList<Item> items = new ArrayList<>();
 
+    int today; int month; int dayOfMonth;
 
     /* (non-Javadoc)
      * @see android.app.Activity#onCreate(android.os.Bundle)
@@ -102,6 +101,10 @@ public class calfragment extends Fragment implements OnClickListener, AdapterVie
         ImageView bLastMonth = (ImageView) view.findViewById(R.id.calendar_prev_button);
         ImageView bNextMonth = (ImageView) view.findViewById(R.id.calendar_next_button);
         FloatingActionButton bt_add = (FloatingActionButton) view.findViewById(R.id.Floatingbt_add);
+
+        TextView AddDate = (TextView) view.findViewById(R.id.add_date);     //0618추가
+        AddDate.setVisibility(View.INVISIBLE);
+
 
         mTvCalendarTitle = (TextView) view.findViewById(R.id.gv_calendar_activity_tv_title);
         mGvCalendar = (GridView) view.findViewById(R.id.gv_calendar_activity_gv_calendar);
@@ -128,27 +131,53 @@ public class calfragment extends Fragment implements OnClickListener, AdapterVie
         RecyclerViewAdapter adapter = new RecyclerViewAdapter(context, items);
         recyclerView.setAdapter(adapter);
 
+        Intent intent = new Intent(getActivity(), AddTaskActivity.class);
+
         bt_add.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getActivity(), AddTaskActivity.class);
-                startActivityForResult(intent, 1);
+                intent.putExtra("year",mThisMonthCalendar.get(Calendar.YEAR));
+                intent.putExtra("month",mThisMonthCalendar.get(Calendar.MONTH) + 1);
+                intent.putExtra("day",today);
+                startActivity(intent);
             }
         });
 
-       mGvCalendar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mGvCalendar.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Toast.makeText(context,"모니hi/민주왔다감", Toast.LENGTH_SHORT).show();
+                int year = mThisMonthCalendar.get(Calendar.YEAR);
+                month = mThisMonthCalendar.get(Calendar.MONTH)+1;
+                today = position-dayOfMonth+2;
+                text_date.setText(month+" 월 "+today+" 일 ");
+
+                items.clear();
+
+                int date;
+                if(today<10){
+                    date = (year*1000+month*10)*10+today;
+                }
+                else{
+                    date = year*1000+month*10+today;
+                }
+
+                /*
+                Amplify.API.query(
+                        ModelQuery.list(Todo.class, Todo.DATE.eq(date)),
+                        response -> {
+                            for (Todo todo : response.getData()) {
+                                Log.i("MyAmplifyApp", todo.getTaskName());
+                                items.add(new Item(todo.getTaskName(),todo.getDate().toString()));
+                            }
+                        },
+                        error -> Log.e("MyAmplifyApp", "Query failure", error)
+                );*/
+                adapter.notifyDataSetChanged();
             }
         });
-
-
 
         return view;
     }
-
-
 
 
 
@@ -287,13 +316,13 @@ public class calfragment extends Fragment implements OnClickListener, AdapterVie
     {
         mCalendarAdapter = new CalendarAdapter(this, R.layout.day, mDayList);
         mGvCalendar.setAdapter(mCalendarAdapter);
-}
+    }
 
     //6.
     private void initDataset() {
         //초기화
         items.clear();
-        items.add(new Item("2020년 5월 15일", "민주랑 약속 "));
+        items.add(new Item("(어디서)", "(뭘하는지) "));
         items.add(new Item("2020년 5월 17일", "가족모임 "));
         items.add(new Item("2020년 5월 18일", "초등학교 동창회"));
     }

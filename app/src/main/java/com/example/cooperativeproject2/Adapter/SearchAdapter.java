@@ -1,10 +1,13 @@
 package com.example.cooperativeproject2.Adapter;
 
+
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.cooperativeproject2.R;
 import com.example.cooperativeproject2.object;
@@ -13,12 +16,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import androidx.recyclerview.widget.RecyclerView;
-
 /**
  * Created by Administrator on 2017-08-07.
  */
-
 
 public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder> {
 
@@ -79,6 +79,8 @@ public class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder
             tv_address= (TextView) itemView.findViewById(R.id.findlabel);
 
         }
+
+
     }
 
 }

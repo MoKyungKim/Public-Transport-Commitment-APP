@@ -6,13 +6,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
-
 import com.example.cooperativeproject2.Item;
 import com.example.cooperativeproject2.R;
 
 import java.util.ArrayList;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
 public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.MyViewHolder> {
 
@@ -44,17 +44,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         holder.name.setText(mPersons.get(position).getName());
         holder.summary.setText(mPersons.get(position).getSummary());
 
-   /*     클릭하면 웹검색하게 하자.
-        holder.search.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                //클릭시 웹검색하게 하자.
-                String term = mPersons.get(position).name;
-                Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-                intent.putExtra(SearchManager.QUERY, term);
-                mContext.startActivity(intent);
-            }
-        });*/
     }
 
     @Override

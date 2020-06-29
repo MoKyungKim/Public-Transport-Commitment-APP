@@ -1,14 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:card_view="http://schmas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_find"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:layout_gravity="center_horizontal"
-    android:id="@+id/layout_find">
+    android:background="@color/colorPrimaryDark"
+    android:orientation="vertical">
+
+
+    <Button
+        android:id="@+id/search"
+        android:layout_width="104dp"
+        android:layout_height="95dp"
+        android:background="@color/colorPrimaryDark"
+        android:text="search"
+        android:textColor="#FFC107"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@+id/end_search"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        tools:ignore="NewApi" />
+
+    <EditText
+        android:id="@+id/end_search"
+        android:layout_width="310dp"
+        android:layout_height="wrap_content"
+        android:background="@android:drawable/editbox_background"
+        android:drawableStart="@drawable/ic_location"
+        android:drawableLeft="@drawable/ic_location"
+        android:drawablePadding="16dp"
+        android:hint="enter_end_address"
+        android:padding="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/start_search"
+        app:layout_constraintVertical_bias="0.0"
+        tools:ignore="MissingConstraints" />
 
 
     <EditText
@@ -19,7 +54,7 @@
         android:drawableStart="@drawable/ic_location"
         android:drawableLeft="@drawable/ic_location"
         android:drawablePadding="16dp"
-        android:hint="@string/enter_address"
+        android:hint="enter_start_address"
         android:padding="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -29,88 +64,15 @@
         app:layout_constraintVertical_bias="0.0"
         tools:ignore="MissingConstraints" />
 
-    <EditText
-        android:id="@+id/end_search"
-        android:layout_width="310dp"
-        android:layout_height="wrap_content"
-        android:background="@android:drawable/editbox_background"
-        android:drawableStart="@drawable/ic_location"
-        android:drawableLeft="@drawable/ic_location"
-        android:drawablePadding="16dp"
-        android:hint="@string/enter_address"
-        android:padding="12dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/start_search"
-        app:layout_constraintVertical_bias="0.0"
-        tools:ignore="MissingConstraints" />
-
-    <Button
-        android:id="@+id/search"
-        android:layout_width="104dp"
-        android:layout_height="95dp"
-        android:drawableStart="?android:attr/actionModeWebSearchDrawable"
-        android:drawableLeft="?android:attr/actionModeWebSearchDrawable"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toEndOf="@+id/end_search"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        tools:ignore="NewApi" />
-
-    <Button
-        android:id="@+id/ZIP"
-        android:layout_width="128dp"
-        android:layout_height="54dp"
-        android:background="#00ff0000"
-        android:text="ZIP"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/ZIP2"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/end_search"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <Button
-        android:id="@+id/ZIP2"
-        android:layout_width="139dp"
-        android:layout_height="54dp"
-        android:background="#00ff0000"
-        android:text="ZIP2"
-        app:layout_constraintBottom_toBottomOf="@+id/recycler_find"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.448"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/end_search"
-        app:layout_constraintVertical_bias="0.0"
-        tools:visibility="visible" />
-
-    <Button
-        android:id="@+id/star"
-        android:layout_width="150dp"
-        android:layout_height="56dp"
-        android:background="#00ff0000"
-        android:text="STAR"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/end_search"
-        app:layout_constraintVertical_bias="0.0" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recycler_find"
-        android:layout_width="421dp"
+        android:layout_width="match_parent"
         android:layout_height="582dp"
-        android:layout_marginTop="1dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/ZIP">
+        app:layout_constraintStart_toStartOf="parent">
 
     </androidx.recyclerview.widget.RecyclerView>
 

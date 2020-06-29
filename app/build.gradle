@@ -22,6 +22,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    dataBinding {
+        enabled = true
+    }
 }
 
 dependencies {
@@ -57,7 +61,7 @@ dependencies {
     implementation('com.amazonaws:aws-android-sdk-auth-ui:2.16.12@aar') { transitive = true }
     implementation 'org.jetbrains:annotations-java5:15.0'
     implementation project(path: ':SDK_release_v2.0.0')
-
+    implementation 'com.google.code.gson:gson:2.8.5'
 
 
 }

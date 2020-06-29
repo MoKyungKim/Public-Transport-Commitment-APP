@@ -8,7 +8,11 @@
     <string name="odsay_key">LVmXMmKdssPNt3dDw1an5zG0hX5J3MI6gLUXd5Ck9rY</string>
     <string name="enter_address">enter_address</string>
 
-    <string-array name = "array_Kor">
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="title_activity_route">Map</string>
+
+    <string-array name="array_Kor">
         <item>"음식점"</item>
         <item>"카페"</item>
         <item>"바"</item>
@@ -17,23 +21,20 @@
         <item>"택시정류장"</item>
     </string-array>
 
-    <string-array name = "distance">
+    <string-array name="distance">
         <item>"500m"</item>
         <item>"1000m"</item>
         <item>"1500m"</item>
         <item>"2000m"</item>
     </string-array>
 
+    <!-- TODO: Remove or change this placeholder text -->
     <string-array name="startend">
         <item>"출발지로 설정"</item>
         <item>"도착지로 설정"</item>
     </string-array>
-
     <string-array name="markermenu">
         <item>"전화걸기"</item>
         <item>"블로그 보기"</item>
     </string-array>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

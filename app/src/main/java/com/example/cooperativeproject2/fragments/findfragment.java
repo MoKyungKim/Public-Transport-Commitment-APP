@@ -2,54 +2,51 @@ package com.example.cooperativeproject2.fragments;
 
 import android.content.Context;
 import android.content.Intent;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
 import android.os.Bundle;
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import com.example.cooperativeproject2.Adapter.SearchAdapter;
-import com.example.cooperativeproject2.Item;
 import com.example.cooperativeproject2.R;
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
+import com.example.cooperativeproject2.itemactivity;
+import com.example.cooperativeproject2.object;
+import com.example.cooperativeproject2.routeActivity;
+import com.google.android.gms.common.api.Status;
 import com.google.android.gms.maps.MapsInitializer;
-import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.libraries.places.api.Places;
 import com.google.android.libraries.places.api.model.Place;
 import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 import com.odsay.odsayandroidsdk.API;
 import com.odsay.odsayandroidsdk.ODsayData;
 import com.odsay.odsayandroidsdk.ODsayService;
 import com.odsay.odsayandroidsdk.OnResultCallbackListener;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
+
+import javax.annotation.Nonnull;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import noman.googleplaces.PlacesException;
@@ -63,44 +60,61 @@ import noman.googleplaces.PlacesListener;
 
 
 
-public class findfragment extends Fragment implements OnMapReadyCallback,
+public class findfragment extends Fragment implements
         ActivityCompat.OnRequestPermissionsResultCallback, PlacesListener {
 
 
-    private ArrayList<Item> items = new ArrayList<>();
-     // 데이터를 넣은 리스트변수
+
+    private ArrayList<String[]> clickTraffic= new ArrayList<>();
+    private ArrayList<object> items = new ArrayList<>();
+    private ArrayList<String[]> SX = new ArrayList<>();
+    private ArrayList<String[]> SY = new ArrayList<>();
+    private ArrayList<String[]> EX = new ArrayList<>();
+    private ArrayList<String[]> EY = new ArrayList<>();
+    private ArrayList<String[]> StartName= new ArrayList<>();
+    private ArrayList<String[]> EndName= new ArrayList<>();
+    // 데이터를 넣은 리스트변수
     private RecyclerView recyclerView;          // 검색을 보여줄 리스트변수
     private EditText startSearch;        // 출발 검색어를 입력할 Input 창
     private EditText endSearch;        // 도착 검색어를 입력할 Input 창
     private SearchAdapter adapter;      // 리스트뷰에 연결할 아답터
     private LinearLayoutManager mLayoutManager;
 
+    private int StartOrEnd = 0;
+    private int startendcheck = 0;
+    String name=((mapfragment) mapfragment.context).markerName;
+    Double lat=((mapfragment) mapfragment.context).late;
+    Double lng=((mapfragment) mapfragment.context).lnge;
+    int check=((mapfragment) mapfragment.context).startendcheck;
+
+    Double StartLat;
+    Double StartLng;
+    Double EndLat;
+    Double EndLng;
+
+    String sat, sng, eat, eng;
+
 
     //구글맵이용
-    private GoogleMap fMap;
-    private MapView mapView = null;
-    private Geocoder geocoder;
-    private Button button1;
-    private Button button2;
-    private Button button3;
+
     private static final String TAG = "googlemap_example";
-    private Marker currentMarker = null;
-    private List<Marker> previous_marker;
+    private FragmentActivity mContext;
 
 
 
     private static findfragment INSTANCE = null;
     private  View view;
-    private Context context;
     private Spinner sp_api;
 
     private Button search;
 
-    private TextView findlabel;
-    private String spinnerSelectedName;
-
     private ODsayService odsayService;
-    private JSONObject jsonObject;
+    private JSONObject jsonobject;
+    private JSONObject jresult;
+
+    Intent myIntent;
+
+
 
     public static findfragment getINSTANCE(){
         if(INSTANCE == null)
@@ -111,124 +125,204 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        init();
 
     }
+    private void init() {
+
+
+        mContext = (FragmentActivity) this.getContext();//컨텍스트 변수
+
+        odsayService = ODsayService.init(mContext, getString(R.string.odsay_key));//odsayservice객체생성
+        odsayService.setReadTimeout(5000);//서버연결제한시간설정(단위는 밀리세컨드 현재 5초로 설정)
+        odsayService.setConnectionTimeout(5000);//데이터획득제한시간설정(위와 동일)
+
+//        bt_api_call.setOnClickListener(onClickListener);
+        //sp_api.setOnItemSelectedListener(onItemSelectedListener);
+    }
+
 
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d("체크","oncreateview");
+
         view = inflater.inflate(R.layout.layout_find, container, false);
 
-        button1 = view.findViewById(R.id.ZIP);
-        button2 = view.findViewById(R.id.ZIP2);
-        button3 = view.findViewById(R.id.star);
 
         view = view.findViewById(R.id.layout_find);
 
         recyclerView = view.findViewById(R.id.recycler_find);
         startSearch = view.findViewById(R.id.start_search);
         endSearch = view.findViewById(R.id.end_search);
+        search = view.findViewById(R.id.search);
 
         recyclerView.setHasFixedSize(true);
         recyclerView.setLayoutManager(mLayoutManager);
+
+
+        initdata();
+        Context context = view.getContext();
+        RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.recycler_find);
+        recyclerView.setHasFixedSize(true);
 
         LinearLayoutManager layoutManager = new LinearLayoutManager(context);
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(layoutManager);
 
-        List<Recent> potionList = new ArrayList<Recent>();
-        for (int i = 0; i < 30; i++) {
-            Recent rc = new Recent(i + "", "");
-            potionList.add(rc);
-        }
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), LinearLayoutManager.VERTICAL);
+        recyclerView.addItemDecoration(dividerItemDecoration);
 
-        for (int i = 0; i < 30; i++) {
-            Recent rc = new Recent(i + "" + i, "");
-            potionList.add(rc);
-        }
+        SearchAdapter adapter = new SearchAdapter( items);
+        Log.d("체크","recitems ="+items);
 
-        for (int i = 0; i < 30; i++) {
-            Recent rc = new Recent(i + "" + i + "" + i, "");
-            potionList.add(rc);
-        }
-
-        adapter = new SearchAdapter(this, potionList);
         recyclerView.setAdapter(adapter);
-
-        startSearch.addTextChangedListener(new TextWatcher() {
+        recyclerView.addOnItemTouchListener(new RecyclerTouchListener(getActivity(), recyclerView, new ClickListener()  {
             @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            public void onClick(@Nonnull View view, int position)
+            {
 
+                myIntent = new Intent(getActivity(), itemactivity.class);
+                myIntent.putExtra("traffic",clickTraffic.get(position));
+                startActivity(myIntent);
             }
 
             @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            public void onLongClick(View view, int position) {
+
+                Intent mapIntent = new Intent(getActivity(), routeActivity.class);
+                mapIntent.putExtra("SX", SX.get(position));
+
+                mapIntent.putExtra("SY", SY.get(position));
+                mapIntent.putExtra("EX", EX.get(position));
+                mapIntent.putExtra("EY", EY.get(position));
+                mapIntent.putExtra("SLat",StartLat); mapIntent.putExtra("SLng",StartLng);
+                mapIntent.putExtra("ELat",EndLat); mapIntent.putExtra("ELng",EndLng);
+                mapIntent.putExtra("startname", StartName.get(position));
+                mapIntent.putExtra("endname", EndName.get(position));
+                mapIntent.putExtra("SLat",sat);mapIntent.putExtra("SLng",sng);
+                mapIntent.putExtra("ELat",eat);mapIntent.putExtra("ELng",eng);
+                Log.d("???", sat+" ");Log.d("???", sng+" ");
+                Log.d("???", eat+" "); Log.d("???", eat+" ");
+                startActivity(mapIntent);
 
             }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                String text = startSearch.getText().toString()
-                        .toLowerCase(Locale.getDefault());
-                adapter.filter(text);
-
-            }
-        });
-
-        endSearch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-
-            }
-
-            @Override
-            public void afterTextChanged(Editable editable) {
-                String text = endSearch.getText().toString()
-                        .toLowerCase(Locale.getDefault());
-                adapter.filter(text);
-
-            }
-        });
+        }));
 
 
 
-       // sp_api.setSelection(0);
-        //initdata();
-        mapView.getMapAsync(this);
+
+
         return view;
     }
+
+    public interface ClickListener {
+        void onClick(View view, int position);
+
+        void onLongClick(View view, int position);
+    }
+
+    public static class RecyclerTouchListener implements RecyclerView.OnItemTouchListener {
+
+        private GestureDetector gestureDetector;
+        private findfragment.ClickListener clickListener;
+
+        public RecyclerTouchListener(Context context, final RecyclerView recyclerView, final findfragment.ClickListener clickListener) {
+            this.clickListener = clickListener;
+            gestureDetector = new GestureDetector(context, new GestureDetector.SimpleOnGestureListener() {
+                @Override
+                public boolean onSingleTapUp(MotionEvent e) {
+                    return true;
+                }
+
+                @Override
+                public void onLongPress(MotionEvent e) {
+                    View child = recyclerView.findChildViewUnder(e.getX(), e.getY());
+                    if (child != null && clickListener != null) {
+                        clickListener.onLongClick(child, recyclerView.getChildAdapterPosition(child));
+                    }
+                }
+            });
+        }
+
+
+        @Override
+        public boolean onInterceptTouchEvent(RecyclerView rv, MotionEvent e) {
+            View child = rv.findChildViewUnder(e.getX(), e.getY());
+            if (child != null && clickListener != null && gestureDetector.onTouchEvent(e)) {
+                clickListener.onClick(child, rv.getChildAdapterPosition(child));
+            }
+            return false;
+        }
+
+        @Override
+        public void onTouchEvent(RecyclerView rv, MotionEvent e) {
+        }
+
+        @Override
+        public void onRequestDisallowInterceptTouchEvent(boolean disallowIntercept) {
+        }
+    }
+
+
+
 
     public void onActivityCreated(@Nullable final Bundle savedInstanceState) {
         //Fragment에서의 onCreateView를 마치고, Activity에서 onCreate()가 호출되고 나서 호출됨
         //Activity와 Fragment의 뷰가 모두 생성된 상태로, view를 변경하는 작업 가능
         super.onActivityCreated(savedInstanceState);
         Log.d(TAG, "onActivityCreated");
+        Log.d("체크","onactivityCreated");
 
         //액티비티가 처음 생성될 때 실행되는 함수
-        MapsInitializer.initialize(context);
+        MapsInitializer.initialize(mContext);
         //Initialize places
-        Places.initialize(context.getApplicationContext(), "AIzaSyBGN9HuTUWakZjy19FTkGPw4KZML3sbJfc");
+        Places.initialize(mContext.getApplicationContext(), "AIzaSyBGN9HuTUWakZjy19FTkGPw4KZML3sbJfc");
 
-        //Set EditText non focusable
-        startSearch.setFocusable(false);
-        startSearch.setOnClickListener(new View.OnClickListener() {
+        search.setFocusable(false);
+        search.setOnClickListener (new View.OnClickListener() {
+
             @Override
             public void onClick(View v) {
-                //Initialize place field list
-                List<Place.Field> fieldList = Arrays.asList(Place.Field.ADDRESS,
-                        Place.Field.LAT_LNG, Place.Field.NAME);
-                //Create intent
-                Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.
-                        OVERLAY, fieldList).build(context);
-                //Start activity result
-                startActivityForResult(intent, 100);
+                {
+                    initdata();
+                    name = ((mapfragment) mapfragment.context).markerName;
+                    lat = ((mapfragment) mapfragment.context).late;
+                    lng = ((mapfragment) mapfragment.context).lnge;
+                    if (!startSearch.getText().toString().equals("") && !endSearch.getText().toString().equals("")) {
+                        odsayService.requestSearchPubTransPath(String.valueOf(StartLng), String.valueOf(StartLat), String.valueOf(EndLng), String.valueOf(EndLat), "0", "0", "0", onResultCallbackListener);
+                    } else {
+                        check = ((mapfragment) mapfragment.context).startendcheck;
+                        if (check == 1) {
+                            startSearch.setText(name);
+                            StartLat = lat;
+                            StartLng = lng;
+                            Log.d("체크", "출발" + name + " " + StartLat + " " + StartLng);
+                            check = 0;
+                        } else if (check == 2) {
+                            endSearch.setText(name);
+                            EndLng = lng;
+                            EndLat = lat;
+                            Log.d("체크", "도착" + name + " " + EndLat + " " + EndLng);
+                            check = 0;
+                        }
+                    }
+                }
             }
+
+        });
+        //Set EditText non focusable
+        startSearch.setFocusable(false);
+        startSearch.setOnClickListener(v -> {
+            //Initialize place field list
+            List<Place.Field> fieldList = Arrays.asList(Place.Field.ADDRESS,
+                    Place.Field.LAT_LNG, Place.Field.NAME);
+            //Create intent
+            Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.
+                    OVERLAY, fieldList).build(getActivity());
+            //Start activity result
+            startActivityForResult(intent, 102);
         });
 
         endSearch.setFocusable(false);
@@ -240,280 +334,568 @@ public class findfragment extends Fragment implements OnMapReadyCallback,
                         Place.Field.LAT_LNG, Place.Field.NAME);
                 //Create intent
                 Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.
-                        OVERLAY, fieldList).build(context);
+                        OVERLAY, fieldList).build(mContext);
                 //Start activity result
-                startActivityForResult(intent, 100);
-            }
-        });
-        previous_marker = new ArrayList<Marker>();
-    }
-
-    private void setCurrentLocation(Location location, String markerTitle, String markerSnippet) {
-
-
-        if (currentMarker != null) currentMarker.remove();
-
-
-        LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
-
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(currentLatLng);
-        markerOptions.title(markerTitle);
-        markerOptions.snippet(markerSnippet);
-        markerOptions.draggable(true);
-
-
-        currentMarker = fMap.addMarker(markerOptions);
-
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLng(currentLatLng);
-        //mMap.moveCamera(cameraUpdate);  //현재위치로 계속 이동
-
-    }
-
-
-    /**
-     * Manipulates the map once available.
-     * This callback is triggered when the map is ready to be used.
-     * This is where we can add markers or lines, add listeners or move the camera. In this case,
-     * we just add a marker near Sydney, Australia.
-     * If Google Play services is not installed on the device, the user will be prompted to install
-     * it inside the SupportMapFragment. This method will only be triggered once the user has
-     * installed Google Play services and returned to the app.
-     */
-    @Override
-    public void onMapReady(final GoogleMap googleMap) {
-        fMap = googleMap;
-
-        // 맵 터치 이벤트 구현 //
-        fMap.setOnMapClickListener(new GoogleMap.OnMapClickListener(){
-            @Override
-            public void onMapClick(LatLng point) {
-                MarkerOptions mOptions = new MarkerOptions();
-                // 마커 타이틀
-                mOptions.title("마커 좌표");
-                Double latitude = point.latitude; // 위도
-                Double longitude = point.longitude; // 경도
-                // 마커의 스니펫(간단한 텍스트) 설정
-                mOptions.snippet(latitude.toString() + ", " + longitude.toString());
-                // LatLng: 위도 경도 쌍을 나타냄
-                mOptions.position(new LatLng(latitude, longitude));
-                // 마커(핀) 추가
-                googleMap.addMarker(mOptions);
-            }
-        });
-
-        ////////////////////
-
-        // 버튼 이벤트
-        search.setOnClickListener(new Button.OnClickListener(){
-            @Override
-            public void onClick(View v){
-                String str1=startSearch.getText().toString();
-                String str2=endSearch.getText().toString();
-                List<Address> addressList = null;
-                try {
-                    // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
-                    addressList = geocoder.getFromLocationName(
-                            str1, // 주소
-                            10); // 최대 검색 결과 개수
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
-                try {
-                    // editText에 입력한 텍스트(주소, 지역, 장소 등)을 지오 코딩을 이용해 변환
-                    addressList = geocoder.getFromLocationName(
-                            str2, // 주소
-                            10); // 최대 검색 결과 개수
-                }
-                catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                System.out.println(addressList.get(0).toString());
-                // 콤마를 기준으로 split
-                String []splitStr = addressList.get(0).toString().split(",");
-                String address = splitStr[0].substring(splitStr[0].indexOf("\"") + 1,splitStr[0].length() - 2); // 주소
-                System.out.println(address);
-
-                String latitude = splitStr[10].substring(splitStr[10].indexOf("=") + 1); // 위도
-                String longitude = splitStr[12].substring(splitStr[12].indexOf("=") + 1); // 경도
-                System.out.println(latitude);
-                System.out.println(longitude);
-
-                // 좌표(위도, 경도) 생성
-                LatLng point = new LatLng(Double.parseDouble(latitude), Double.parseDouble(longitude));
-                // 마커 생성
-                MarkerOptions mOptions2 = new MarkerOptions();
-                mOptions2.title("search result");
-                mOptions2.snippet(address);
-                mOptions2.position(point);
-                // 마커 추가
-                fMap.addMarker(mOptions2);
-                // 해당 좌표로 화면 줌
-                fMap.moveCamera(CameraUpdateFactory.newLatLngZoom(point,15));
+                startActivityForResult(intent, 101);
             }
         });
 
 
-        ////////////////////
 
-        // Add a marker in Sydney and move the camera
-      //  LatLng sydney = new LatLng(-34, 151);
-        //fMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        //fMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+
+
+
+
     }
 
 
 
-
-
-   @Override
-   public void onAttach(Context context) {
-
-       super.onAttach(context);
-        this.context= context;
-    }//context 가져오려면 필요한 함수. 프래그먼트에서는 컨텍스트를 함부로 못가져와서 붙임
-
-    private void init() {
-
-
-        context = this.getContext();//컨텍스트 변수
-
-        odsayService = ODsayService.init(context, getString(R.string.odsay_key));//odsayservice객체생성
-        odsayService.setReadTimeout(5000);//서버연결제한시간설정(단위는 밀리세컨드 현재 5초로 설정)
-        odsayService.setConnectionTimeout(5000);//데이터획득제한시간설정(위와 동일)
-
-//        bt_api_call.setOnClickListener(onClickListener);
-        //sp_api.setOnItemSelectedListener(onItemSelectedListener);
-    }
-
-
-
-    private AdapterView.OnItemSelectedListener onItemSelectedListener = new AdapterView.OnItemSelectedListener() {
-        @Override
-        public void onItemSelected(AdapterView<?> parent, View view,
-                                   int position, long id) {
-            spinnerSelectedName = (String) parent.getItemAtPosition(position);
-        }
-
-        @Override
-        public void onNothingSelected(AdapterView<?> parent) {
-        }
-    };
-
-    private OnResultCallbackListener onResultCallbackListener = new OnResultCallbackListener() {
+    public OnResultCallbackListener onResultCallbackListener = new OnResultCallbackListener() {
         @Override
         public void onSuccess(ODsayData oDsayData, API api) {
-            jsonObject = oDsayData.getJson();
-            findlabel.setText(jsonObject.toString());
-            //API 호출 결과 데이터를 리턴합니다. Json, Map 형식의 데이터 서비스를 제공하고,
-            //getJson, getMap 메서드를 통해 가져옵니다.
-            // - odsayData : API 호출 결과 데이터를 리턴합니다. Json, Map 형식의 데이터 서비스를 제공하고,
-            //   getJson, getMap 메서드를 통해 가져옵니다.
-            //   - api : 호출한 API 값 종류를 리턴합니다. API명은 호출 메서드 네이밍을 따라갑니다.
+            try {
+                initdata();
+                jsonobject = oDsayData.getJson();
+                jresult = (JSONObject) jsonobject.get("result");
+                JSONArray jpath = (JSONArray) jresult.getJSONArray("path");
+                int pl = jpath.length();
+
+                for (int i = 0; i < pl; i++) {
+                    JSONObject path = (JSONObject) jpath.getJSONObject(i);
+                    int pathtype = path.getInt("pathType");
+
+                    if (pathtype == 1) {
+                        JSONObject info = (JSONObject) path.getJSONObject("info");
+                        Integer payment = info.getInt("payment");
+                        Integer totaltime = info.getInt("totalTime");
+                        String first = info.getString("firstStartStation");
+                        String last = info.getString("lastEndStation");
+                        Integer totalstation = info.getInt("totalStationCount");
+                        Double totaldistance = info.getDouble("totalDistance");
+                        JSONArray subpath = (JSONArray) path.getJSONArray("subPath");
+                        Double[] distance = new Double[subpath.length()];
+                        Integer[] sectionTime = new Integer[subpath.length()];
+                        String[] Startname = new String[subpath.length()];
+                        String[] Endname = new String[subpath.length()];
+                        String[] way = new String[subpath.length()];
+                        String[] traffic = new String[subpath.length()];
+                        String[] sX = new String[subpath.length()];
+                        String[] sY = new String[subpath.length()];
+                        String[] eX = new String[subpath.length()];
+                        String[] eY = new String[subpath.length()];
+
+
+                        for (int j = 0; j < subpath.length(); j++) {
+                            JSONObject sub = (JSONObject) subpath.getJSONObject(j);
+                            int traffictype = sub.getInt("trafficType");
+                            if (traffictype == 1) {
+                                distance[j] = sub.getDouble("distance");
+                                sectionTime[j] = sub.getInt("sectionTime");
+                                String startname = sub.getString("startName");
+                                way[j] = sub.getString("way");
+                                Double startX = sub.getDouble("startX");
+                                Double startY = sub.getDouble("startY");
+                                String endname = sub.getString("endName");
+                                Double endX = sub.getDouble("endX");
+                                Double endY = sub.getDouble("endY");
+
+
+                                JSONArray jlane = (JSONArray) sub.getJSONArray("lane");
+                                String[] subway = new String[jlane.length()];
+                                for (int k = 0; k < jlane.length(); k++) {
+                                    JSONObject lane = (JSONObject) jlane.getJSONObject(k);
+                                    String name = lane.getString("name");
+                                    //Integer subwaycode = lane.getInt("subwayCode");
+                                    subway[k] = name;
+
+                                }
+
+                                JSONObject passstoplist = (JSONObject) sub.getJSONObject("passStopList");
+                                JSONArray stations = (JSONArray) passstoplist.getJSONArray("stations");
+                                int psl = stations.length();
+                                String[] pass = new String[psl];
+
+                                for (int k = 0; k < psl; k++) {
+                                    JSONObject pst = (JSONObject) stations.getJSONObject(k);
+                                    Integer index = pst.getInt("index");
+                                    String stationname = pst.getString("stationName");
+                                    pass[k] = ((index + 1) + "." + stationname + " ");
+
+                                }
+
+                                traffic[j] = "지하철  " + " \n시간 : " + sectionTime[j] + "분" + " \n노선 : " + Arrays.toString(subway) + " \n정류장 : " + Arrays.toString(pass);
+
+                                sX[j] = String.valueOf(startX);
+                                sY[j] = String.valueOf(startY);
+                                eX[j] = String.valueOf(endX);
+                                eY[j] = String.valueOf(endY);
+                                Startname[j] = startname;
+                                Endname[j] = endname;
+
+                            } else if (traffictype == 2) {
+
+                                distance[j] = sub.getDouble("distance");
+                                sectionTime[j] = sub.getInt("sectionTime");
+                                String startname = sub.getString("startName");
+                                Double startX = sub.getDouble("startX");
+                                Double startY = sub.getDouble("startY");
+                                String endname = sub.getString("endName");
+                                Double endX = sub.getDouble("endX");
+                                Double endY = sub.getDouble("endY");
+
+
+                                JSONArray jlane = (JSONArray) sub.getJSONArray("lane");
+                                String[] bus = new String[jlane.length()];
+                                for (int k = 0; k < jlane.length(); k++) {
+                                    JSONObject lane = (JSONObject) jlane.getJSONObject(k);
+                                    String busno = lane.getString("busNo");
+                                    bus[k] = busno;
+
+                                }
+
+                                JSONObject passstoplist = (JSONObject) sub.getJSONObject("passStopList");
+                                JSONArray stations = (JSONArray) passstoplist.getJSONArray("stations");
+                                int psl = stations.length();
+                                String[] pass = new String[psl];
+
+                                for (int k = 0; k < psl; k++) {
+                                    JSONObject pst = (JSONObject) stations.getJSONObject(k);
+                                    Integer index = pst.getInt("index");
+                                    String stationname = pst.getString("stationName");
+                                    pass[k] = (index + 1) + "." + stationname + " ";
+
+                                }
+
+                                traffic[j] = "버스  " + " \n소요시간 : " + sectionTime[j] + "분\n" + "버스번호: " + Arrays.toString(bus) + " \n정류장 : " + Arrays.toString(pass);
+                                sX[j] = String.valueOf(startX);
+                                sY[j] = String.valueOf(startY);
+                                eX[j] = String.valueOf(endX);
+                                eY[j] = String.valueOf(endY);
+                                Startname[j] = startname;
+                                Endname[j] = endname;
+
+
+                            } else if (traffictype == 3) {
+
+                                distance[j] = sub.getDouble("distance");
+                                sectionTime[j] = sub.getInt("sectionTime");
+                                traffic[j] = "도보 " + " \n거리 : " + distance[j] + "미터" + " \n소요시간 : " + sectionTime[j] + "분";
+
+                            }
+
+
+                        }
+
+                        clickTraffic.add(i, traffic);
+
+
+                        Log.d("check", first + ". " + last + ". " + totalstation + ". " + totaldistance + "+");
+                        items.add(new object("총요금 : " + payment + "원" + "\n총 소요시간 : " + (totaltime / 60) + "시간" + (totaltime % 60) + "분" +
+                                "\n출발역 : " + first + "\n도착역 : " + last + "\n 총 정류장 수 : " + totalstation + "개"));
+                        Toast.makeText(getActivity(), sX+" ", Toast.LENGTH_SHORT).show();
+                        SX.add(i, sX);
+                        SY.add(i, sY);
+                        EX.add(i, eX);
+                        EY.add(i, eY);
+                        StartName.add(i, Startname);
+                        EndName.add(i, Endname);
+
+
+                    } else if (pathtype == 2) {
+                        JSONObject info = (JSONObject) path.getJSONObject("info");
+                        Integer payment = info.getInt("payment");
+                        Integer totaltime = info.getInt("totalTime");
+                        String first = info.getString("firstStartStation");
+                        String last = info.getString("lastEndStation");
+                        Integer totalstation = info.getInt("totalStationCount");
+                        Double totaldistance = info.getDouble("totalDistance");
+                        JSONArray subpath = (JSONArray) path.getJSONArray("subPath");
+                        double[] distance = new double[subpath.length()];
+                        Integer[] sectionTime = new Integer[subpath.length()];
+                        String[] Startname = new String[subpath.length()];
+                        String[] Endname = new String[subpath.length()];
+                        String[] way = new String[subpath.length()];
+                        String[] traffic = new String[subpath.length()];
+                        String[] sX = new String[subpath.length()];
+                        String[] sY = new String[subpath.length()];
+                        String[] eX = new String[subpath.length()];
+                        String[] eY = new String[subpath.length()];
+
+
+                        for (int j = 0; j < subpath.length(); j++) {
+                            JSONObject sub = (JSONObject) subpath.getJSONObject(j);
+                            int traffictype = sub.getInt("trafficType");
+                            if (traffictype == 1) {
+                                distance[j] = sub.getDouble("distance");
+                                sectionTime[j] = sub.getInt("sectionTime");
+                                String startname = sub.getString("startName");
+                                way[j] = sub.getString("way");
+                                Double startX = sub.getDouble("startX");
+                                Double startY = sub.getDouble("startY");
+                                String endname = sub.getString("endName");
+                                Double endX = sub.getDouble("endX");
+                                Double endY = sub.getDouble("endY");
+
+
+                                JSONArray jlane = (JSONArray) sub.getJSONArray("lane");
+                                String[] subway = new String[jlane.length()];
+                                for (int k = 0; k < jlane.length(); k++) {
+                                    JSONObject lane = (JSONObject) jlane.getJSONObject(k);
+                                    String name = lane.getString("name");
+                                    //Integer subwaycode = lane.getInt("subwayCode");
+                                    subway[k] = name;
+
+                                }
+
+                                JSONObject passstoplist = (JSONObject) sub.getJSONObject("passStopList");
+                                JSONArray stations = (JSONArray) passstoplist.getJSONArray("stations");
+                                int psl = stations.length();
+                                String[] pass = new String[psl];
+
+                                for (int k = 0; k < psl; k++) {
+                                    JSONObject pst = (JSONObject) stations.getJSONObject(k);
+                                    Integer index = pst.getInt("index");
+                                    String stationname = pst.getString("stationName");
+                                    pass[k] = ((index + 1) + "." + stationname + " ");
+
+                                }
+
+                                traffic[j] = "지하철  " + " \n시간 : " + sectionTime[j] + "분" + " \n노선 : " + Arrays.toString(subway) + " \n정류장 : " + Arrays.toString(pass);
+
+                                sX[j] = String.valueOf(startX);
+                                sY[j] = String.valueOf(startY);
+                                eX[j] = String.valueOf(endX);
+                                eY[j] = String.valueOf(endY);
+                                Startname[j] = startname;
+                                Endname[j] = endname;
+
+                            } else if (traffictype == 2) {
+
+                                distance[j] = sub.getDouble("distance");
+                                sectionTime[j] = sub.getInt("sectionTime");
+                                String startname = sub.getString("startName");
+                                Double startX = sub.getDouble("startX");
+                                Double startY = sub.getDouble("startY");
+                                String endname = sub.getString("endName");
+                                Double endX = sub.getDouble("endX");
+                                Double endY = sub.getDouble("endY");
+
+
+                                JSONArray jlane = (JSONArray) sub.getJSONArray("lane");
+                                String[] bus = new String[jlane.length()];
+                                for (int k = 0; k < jlane.length(); k++) {
+                                    JSONObject lane = (JSONObject) jlane.getJSONObject(k);
+                                    String busno = lane.getString("busNo");
+                                    bus[k] = busno;
+
+                                }
+
+                                JSONObject passstoplist = (JSONObject) sub.getJSONObject("passStopList");
+                                JSONArray stations = (JSONArray) passstoplist.getJSONArray("stations");
+                                int psl = stations.length();
+                                String[] pass = new String[psl];
+
+                                for (int k = 0; k < psl; k++) {
+                                    JSONObject pst = (JSONObject) stations.getJSONObject(k);
+                                    Integer index = pst.getInt("index");
+                                    String stationname = pst.getString("stationName");
+                                    pass[k] = (index + 1) + "." + stationname + " ";
+
+                                }
+
+                                traffic[j] = "버스  " + " \n소요시간 : " + sectionTime[j] + "분\n" + "버스번호: " + Arrays.toString(bus) + " \n정류장 : " + Arrays.toString(pass);
+                                sX[j] = String.valueOf(startX);
+                                sY[j] = String.valueOf(startY);
+                                eX[j] = String.valueOf(endX);
+                                eY[j] = String.valueOf(endY);
+                                Startname[j] = startname;
+                                Endname[j] = endname;
+
+
+                            } else if (traffictype == 3) {
+
+                                distance[j] = sub.getDouble("distance");
+                                sectionTime[j] = sub.getInt("sectionTime");
+                                traffic[j] = "도보 " + " \n거리 : " + distance[j] + "미터" + " \n소요시간 : " + sectionTime[j] + "분";
+
+                            }
+
+
+                        }
+
+                        clickTraffic.add(i, traffic);
+
+
+                        Log.d("check", first + ". " + last + ". " + totalstation + ". " + totaldistance + "+");
+                        items.add(new object("총요금 : " + payment + "원" + "\n총 소요시간 : " + (totaltime / 60) + "시간" + (totaltime % 60) + "분" +
+                                "\n출발역 : " + first + "\n도착역 : " + last + "\n 총 정류장 수 : " + totalstation + "개"));
+                        Toast.makeText(getActivity(), sX+" ", Toast.LENGTH_SHORT).show();
+                        SX.add(i, sX);
+                        SY.add(i, sY);
+                        EX.add(i, eX);
+                        EY.add(i, eY);
+                        StartName.add(i, Startname);
+                        EndName.add(i, Endname);
+                    } else if (pathtype == 3) {
+                        JSONObject info = (JSONObject) path.getJSONObject("info");
+                        Integer payment = info.getInt("payment");
+                        Integer totaltime = info.getInt("totalTime");
+                        String first = info.getString("firstStartStation");
+                        String last = info.getString("lastEndStation");
+                        Integer totalstation = info.getInt("totalStationCount");
+                        Double totaldistance = info.getDouble("totalDistance");
+                        JSONArray subpath = (JSONArray) path.getJSONArray("subPath");
+                        Double[] distance = new Double[subpath.length()];
+                        Integer[] sectionTime = new Integer[subpath.length()];
+                        String[] Startname = new String[subpath.length()];
+                        String[] Endname = new String[subpath.length()];
+                        String[] way = new String[subpath.length()];
+                        String[] traffic = new String[subpath.length()];
+                        String[] sX = new String[subpath.length()];
+                        String[] sY = new String[subpath.length()];
+                        String[] eX = new String[subpath.length()];
+                        String[] eY = new String[subpath.length()];
+
+
+                        for (int j = 0; j < subpath.length(); j++) {
+                            JSONObject sub = (JSONObject) subpath.getJSONObject(j);
+                            int traffictype = sub.getInt("trafficType");
+                            if (traffictype == 1) {
+                                distance[j] = sub.getDouble("distance");
+                                sectionTime[j] = sub.getInt("sectionTime");
+                                String startname = sub.getString("startName");
+                                way[j] = sub.getString("way");
+                                Double startX = sub.getDouble("startX");
+                                Double startY = sub.getDouble("startY");
+                                String endname = sub.getString("endName");
+                                Double endX = sub.getDouble("endX");
+                                Double endY = sub.getDouble("endY");
+
+
+                                JSONArray jlane = (JSONArray) sub.getJSONArray("lane");
+                                String[] subway = new String[jlane.length()];
+                                for (int k = 0; k < jlane.length(); k++) {
+                                    JSONObject lane = (JSONObject) jlane.getJSONObject(k);
+                                    String name = lane.getString("name");
+                                    //Integer subwaycode = lane.getInt("subwayCode");
+                                    subway[k] = name;
+
+                                }
+
+                                JSONObject passstoplist = (JSONObject) sub.getJSONObject("passStopList");
+                                JSONArray stations = (JSONArray) passstoplist.getJSONArray("stations");
+                                int psl = stations.length();
+                                String[] pass = new String[psl];
+
+                                for (int k = 0; k < psl; k++) {
+                                    JSONObject pst = (JSONObject) stations.getJSONObject(k);
+                                    Integer index = pst.getInt("index");
+                                    String stationname = pst.getString("stationName");
+                                    pass[k] = ((index + 1) + "." + stationname + " ");
+
+                                }
+
+                                traffic[j] = "지하철  " + " \n시간 : " + sectionTime[j] + "분" + " \n노선 : " + Arrays.toString(subway) + " \n정류장 : " + Arrays.toString(pass);
+
+                                sX[j] = String.valueOf(startX);
+                                sY[j] = String.valueOf(startY);
+                                eX[j] = String.valueOf(endX);
+                                eY[j] = String.valueOf(endY);
+                                Startname[j] = startname;
+                                Endname[j] = endname;
+
+                            } else if (traffictype == 2) {
+
+                                distance[j] = sub.getDouble("distance");
+                                sectionTime[j] = sub.getInt("sectionTime");
+                                String startname = sub.getString("startName");
+                                Double startX = sub.getDouble("startX");
+                                Double startY = sub.getDouble("startY");
+                                String endname = sub.getString("endName");
+                                Double endX = sub.getDouble("endX");
+                                Double endY = sub.getDouble("endY");
+
+
+                                JSONArray jlane = (JSONArray) sub.getJSONArray("lane");
+                                String[] bus = new String[jlane.length()];
+                                for (int k = 0; k < jlane.length(); k++) {
+                                    JSONObject lane = (JSONObject) jlane.getJSONObject(k);
+                                    String busno = lane.getString("busNo");
+                                    bus[k] = busno;
+
+                                }
+
+                                JSONObject passstoplist = (JSONObject) sub.getJSONObject("passStopList");
+                                JSONArray stations = (JSONArray) passstoplist.getJSONArray("stations");
+                                int psl = stations.length();
+                                String[] pass = new String[psl];
+
+                                for (int k = 0; k < psl; k++) {
+                                    JSONObject pst = (JSONObject) stations.getJSONObject(k);
+                                    Integer index = pst.getInt("index");
+                                    String stationname = pst.getString("stationName");
+                                    pass[k] = (index + 1) + "." + stationname + " ";
+
+                                }
+
+                                traffic[j] = "버스  " + " \n소요시간 : " + sectionTime[j] + "분\n" + "버스번호: " + Arrays.toString(bus) + " \n정류장 : " + Arrays.toString(pass);
+                                sX[j] = String.valueOf(startX);
+                                sY[j] = String.valueOf(startY);
+                                eX[j] = String.valueOf(endX);
+                                eY[j] = String.valueOf(endY);
+                                Startname[j] = startname;
+                                Endname[j] = endname;
+
+
+                            } else if (traffictype == 3) {
+
+                                distance[j] = sub.getDouble("distance");
+                                sectionTime[j] = sub.getInt("sectionTime");
+                                traffic[j] = "도보 " + " \n거리 : " + distance[j] + "미터" + " \n소요시간 : " + sectionTime[j] + "분";
+
+                            }
+
+
+                        }
+
+                        clickTraffic.add(i, traffic);
+
+
+                        Log.d("check", first + ". " + last + ". " + totalstation + ". " + totaldistance + "+");
+                        items.add(new object("총요금 : " + payment + "원" + "\n총 소요시간 : " + (totaltime / 60) + "시간" + (totaltime % 60) + "분" +
+                                "\n출발역 : " + first + "\n도착역 : " + last + "\n 총 정류장 수 : " + totalstation + "개"));
+                        Toast.makeText(getActivity(), sX+" ", Toast.LENGTH_SHORT).show();
+                        SX.add(i, sX);
+                        SY.add(i, sY);
+                        EX.add(i, eX);
+                        EY.add(i, eY);
+                        StartName.add(i, Startname);
+                        EndName.add(i, Endname);
+                    }
+                }
+
+
+
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+
+
+
+
         }
+        //API 호출 결과 데이터를 리턴합니다. Json, Map 형식의 데이터 서비스를 제공하고,
+        //getJson, getMap 메서드를 통해 가져옵니다.
+        // - odsayData : API 호출 결과 데이터를 리턴합니다. Json, Map 형식의 데이터 서비스를 제공하고,
+        //   getJson, getMap 메서드를 통해 가져옵니다.
+        //   - api : 호출한 API 값 종류를 리턴합니다. API명은 호출 메서드 네이밍을 따라갑니다.
+
 
         @Override
         public void onError(int code, String errorMessage, API api) {
-            findlabel.setText("API : " + api.name() + "\n" + errorMessage);
-        }//code<-에러코드값, 호출한 api값종류와 에러 메세지 리턴
-    };
-
-    private View.OnClickListener onClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-            switch (spinnerSelectedName) {
-                case "버스 노선 조회":
-                    odsayService.requestSearchBusLane("150", "1000", "no", "10", "1", onResultCallbackListener);
-                    break;
-                case "버스노선 상세정보 조회":
-                    odsayService.requestBusLaneDetail("12018", onResultCallbackListener);
-                    break;
-                case "버스정류장 세부정보 조회":
-                    odsayService.requestBusStationInfo("107475", onResultCallbackListener);
-                    break;
-                case "열차•KTX 운행정보 검색":
-                    odsayService.requestTrainServiceTime("3300128", "3300108", onResultCallbackListener);
-                    break;
-                case "고속버스 운행정보 검색":
-                    odsayService.requestExpressServiceTime("4000057", "4000030", onResultCallbackListener);
-                    break;
-                case "시외버스 운행정보 검색":
-                    odsayService.requestIntercityServiceTime("4000022", "4000255", onResultCallbackListener);
-                    break;
-                case "항공 운행정보 검색":
-                    odsayService.requestAirServiceTime("3500001", "3500003", "6", onResultCallbackListener);
-                    break;
-                case "운수회사별 버스노선 조회":
-                    odsayService.requestSearchByCompany("792", "100", onResultCallbackListener);
-                    break;
-                case "지하철역 세부 정보 조회":
-                    odsayService.requestSubwayStationInfo("130", onResultCallbackListener);
-                    break;
-                case "지하철역 전체 시간표 조회":
-                    odsayService.requestSubwayTimeTable("130", "1", onResultCallbackListener);
-                    break;
-                case "노선 그래픽 데이터 검색":
-                    odsayService.requestLoadLane("0:0@12018:1:-1:-1", onResultCallbackListener);
-                    break;
-                case "대중교통 정류장 검색":
-                    odsayService.requestSearchStation("11", "1000", "1:2", "10", "1", "127.0363583:37.5113295", onResultCallbackListener);
-                    break;
-                case "반경내 대중교통 POI 검색":
-                    odsayService.requestPointSearch("126.933361407195", "37.3643392278118", "250", "1:2", onResultCallbackListener);
-                    break;
-                case "지도 위 대중교통 POI 검색":
-                    odsayService.requestBoundarySearch("127.045478316811:37.68882830829:127.055063420699:37.6370465749586", "127.045478316811:37.68882830829:127.055063420699:37.6370465749586", "1:2", onResultCallbackListener);
-                    break;
-                case "지하철 경로검색 조회(지하철 노선도)":
-                    odsayService.requestSubwayPath("1000", "201", "222", "1", onResultCallbackListener);
-                    break;
-                case "대중교통 길찾기":
-                    odsayService.requestSearchPubTransPath("126.926493082645", "37.6134436427887", "127.126936754911", "37.5004198786564", "0", "0", "0", onResultCallbackListener);
-                    break;
-                case "지하철역 환승 정보 조회":
-                    odsayService.requestSubwayTransitInfo("133", onResultCallbackListener);
-                    break;
-                case "고속버스 터미널 조회":
-                    odsayService.requestExpressBusTerminals("1000", "서울", onResultCallbackListener);
-                    break;
-                case "시외버스 터미널 조회":
-                    odsayService.requestIntercityBusTerminals("1000", "서울", onResultCallbackListener);
-                    break;
-                case "도시코드 조회":
-                    odsayService.requestSearchCID("서울", onResultCallbackListener);
-                    break;
-            }//odsay서비스객체들 파라미터를 통해 api호출하고 onResultCallbackListener를 통해 결과 반환
         }
+
     };
 
     private void initdata() {
         //초기화
         items.clear();
-        items.add(new Item("2020년 5월 15일", "민주랑 약속 "));
-        items.add(new Item("2020년 5월 17일", "가족모임 "));
-        items.add(new Item("2020년 5월 18일", "초등학교 동창회"));
-    }
 
+    }
 
     @Override
-    public void onPlacesFailure(PlacesException e) {
-        
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == 102 && resultCode == AutocompleteActivity.RESULT_OK){
+            //When success
+            //Initialize plac
+            Place place = Autocomplete.getPlaceFromIntent(data);
+            //Set address on EditText
+            startSearch.setText(place.getAddress());
+
+            String str=startSearch.getText().toString();       //검색창에 아무것도 입력하지 않으면 edittext값이 없어서 튕기는거임
+
+            LatLng latLng = place.getLatLng();
+            StartLat = latLng.latitude;
+            StartLng = latLng.longitude;
+            Log.d("체크",str+" "+StartLat+" "+StartLng);
+        } else if(requestCode == 101 && resultCode == AutocompleteActivity.RESULT_OK){
+            //When success
+            //Initialize plac
+            Place place = Autocomplete.getPlaceFromIntent(data);
+            //Set address on EditText
+            endSearch.setText(place.getAddress());
+
+            String str=endSearch.getText().toString();       //검색창에 아무것도 입력하지 않으면 edittext값이 없어서 튕기는거임
+
+            LatLng latLng = place.getLatLng();
+            EndLat = latLng.latitude;
+            EndLng = latLng.longitude;
+            Log.d("체크",str+" lat="+EndLat+" lng="+ EndLng);
+
+            sat = String.valueOf(StartLat); sng= String.valueOf(StartLng);
+            eat = String.valueOf(EndLat);
+            eng = String.valueOf(EndLng);
+        } else if(resultCode == AutocompleteActivity.RESULT_ERROR){
+            //when error
+            //initialize status
+            Status status = Autocomplete.getStatusFromIntent(data);
+
+        }        // 좌표(위도, 경도) 생성
+
     }
+    @Override
+    public void onPlacesFailure(PlacesException e) {
+        Log.d("체크","onplacefail");
+    }
+
 
     @Override
     public void onPlacesStart() {
-
+        Log.d("체크","onplacestart");
     }
 
     @Override
     public void onPlacesSuccess(List<noman.googleplaces.Place> places) {
-
+        Log.d("체크","onplacessuccess");
     }
 
     @Override
     public void onPlacesFinished() {
-
+        Log.d("체크","onplacefinished");
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d("체크", "onpause");
+    }
+
+    @Override
+    public void onStop(){
+        super.onStop();
+        Log.d("체크","onstop");
+    }
+
+    @Override
+    public void onDestroyView(){
+        super.onDestroyView();
+        Log.d("체크","ondestroy");
+    }
+
+    @Override
+    public void onStart(){
+        super.onStart();
+        Log.d("체크","start");
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        Log.d("체크","resume");
+    }
+
 }

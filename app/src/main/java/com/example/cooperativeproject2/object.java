@@ -2,21 +2,20 @@ package com.example.cooperativeproject2;
 
 public class object {
 
-    String Json;
+    String Item;
     //photo
 
-    public object(String Json) {
-        this.Json = Json;
+    public object(String item) {
+        Item = item;
 
     }
 
     public String getName() {
-        return Json;
+        return Item;
     }
 
 
-    public void setName(String name) {
-        this.Json = name;
-    }
+
+
 
 }
